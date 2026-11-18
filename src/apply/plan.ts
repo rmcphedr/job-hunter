@@ -10,7 +10,7 @@ import { answerByRule, classify } from "./rules";
 import { lookupBank, saveDrafted } from "./bank";
 import type { Fill, FillPlan, FormField } from "./types";
 
-const DRAFT_SYSTEM = `You answer job application form questions for Sherif, a software engineer, using ONLY the facts given (his resume profile and his saved answers).
+const DRAFT_SYSTEM = `You answer job application form questions for Ryan, a machine learning scientist and applied AI developer, using ONLY the facts given (his resume profile and his saved answers).
 - If the facts don't answer a question, return null for it. Never guess or invent experience, numbers, tools, or personal details.
 - For "select" and "radio" fields, return one of the given options exactly as written, or null.
 - For "why_us" questions: 2-4 sentences, specific to this company and role from the listing, plain and direct, only real facts from his profile.

@@ -56,13 +56,15 @@ const questions = {
     ],
   ),
   canTake: choice(
-    "Can the candidate (`candidate.citizenship`: Egyptian citizen living in Egypt, willing to relocate per `candidate.relocation`) actually take this job (`job`)?",
+    // Choice keys keep their original names because they are stored in the database enum:
+    // in_egypt = in the candidate's home country (Canada), remote_from_egypt = remote and open to someone working from Canada.
+    "Can the candidate (`candidate.citizenship`: lives in Montreal, Canada and is authorized to work in Canada only, willing to relocate per `candidate.relocation`) actually take this job (`job`)?",
     {
-      in_egypt: "The job is located in Egypt (on-site or hybrid in Egypt), so no visa is needed",
-      remote_from_egypt: "The job is remote and open to people working from Egypt (worldwide, EMEA, Africa/MENA, or no location restriction)",
-      sponsors: "The job is outside Egypt and he can get there: on-site or hybrid in a Gulf (GCC) country or an EU country and the listing does not rule out visa sponsorship, or anywhere else (including the UK, which is not in the EU) only where the listing explicitly says they sponsor visas or relocate people",
-      unclear: "Not enough information to tell whether someone in Egypt can take it",
-      not_possible: "Restricted to a region excluding Egypt and not a Gulf or EU relocation he can make (e.g. US-only remote, on-site in the US or UK unless the listing explicitly offers sponsorship, must already have work authorization, or explicitly no sponsorship)",
+      in_egypt: "The job is located in Canada (on-site or hybrid anywhere in Canada), so no visa is needed",
+      remote_from_egypt: "The job is remote and open to people working from Canada (Canada, North America, Americas, worldwide, or no location restriction; US-based remote only if it says it hires in Canada or via contractor/EOR)",
+      sponsors: "The job is outside Canada and he can get there: on-site or hybrid elsewhere and the listing explicitly says they sponsor visas or relocate people",
+      unclear: "Not enough information to tell whether someone in Canada can take it",
+      not_possible: "Restricted to a region excluding Canada (e.g. US-only remote, on-site in the US, UK or EU without explicit sponsorship, must already have work authorization there, or explicitly no sponsorship)",
     },
   ),
 } as const;

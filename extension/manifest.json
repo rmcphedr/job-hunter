@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Job Finder Apply",
   "version": "0.1.0",
-  "description": "Fills job applications for Sherif from the local Job Finder app.",
+  "description": "Fills job applications for Ryan from the local Job Finder app.",
   "permissions": [
     "storage",
     "tabs",

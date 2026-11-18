@@ -43,7 +43,7 @@ describe("salary", () => {
 describe("sponsorship", () => {
   const q = field("Will you now or in the future require visa sponsorship?", { kind: "select", options: ["Yes", "No"] });
   test("sponsorship by job", () => {
-    expect(val(answerByRule(q, ctx({ country: "EG", remotePolicy: "onsite" }, "in_egypt")))).toBe("No");
+    expect(val(answerByRule(q, ctx({ country: "CA", remotePolicy: "onsite" }, "in_egypt")))).toBe("No");
     expect(val(answerByRule(q, ctx({ country: "US", remotePolicy: "remote" }, "remote_from_egypt")))).toBe("No");
     expect(val(answerByRule(q, ctx({ country: "US", remotePolicy: "onsite" }, "sponsors")))).toBe("Yes");
     expect(val(answerByRule(q, ctx({ country: "GB", remotePolicy: "hybrid" }, "unclear")))).toBe("Yes");
@@ -53,8 +53,8 @@ describe("sponsorship", () => {
 test("work authorization", () => {
   const yn = { kind: "radio" as const, options: ["Yes", "No"] };
   expect(val(answerByRule(field("Are you legally authorized to work in the United States?", yn), ctx({ country: "US" })))).toBe("No");
-  expect(val(answerByRule(field("Are you authorized to work in Egypt?", yn), ctx({ country: "US" })))).toBe("Yes");
-  expect(val(answerByRule(field("Are you legally authorized to work in the country where this job is located?", yn), ctx({ country: "EG" }, "in_egypt")))).toBe("Yes");
+  expect(val(answerByRule(field("Are you authorized to work in Canada?", yn), ctx({ country: "US" })))).toBe("Yes");
+  expect(val(answerByRule(field("Are you legally authorized to work in the country where this job is located?", yn), ctx({ country: "CA" }, "in_egypt")))).toBe("Yes");
 });
 
 test("eeo declines", () => {
@@ -69,11 +69,11 @@ test("resume file field", () => {
 });
 
 test("profile facts", () => {
-  expect(val(answerByRule(field("First Name"), ctx({})))).toBe("Sherif");
-  expect(val(answerByRule(field("Last Name"), ctx({})))).toBe("Ashraf Mohamed");
-  expect(val(answerByRule(field("Email", { kind: "email" }), ctx({})))).toBe("sherifelamir2003@gmail.com");
-  expect(val(answerByRule(field("LinkedIn Profile"), ctx({})))).toBe("https://linkedin.com/in/sherifElamir");
-  expect(val(answerByRule(field("GitHub URL"), ctx({})))).toBe("https://github.com/SherifAshraf2003");
+  expect(val(answerByRule(field("First Name"), ctx({})))).toBe("Ryan");
+  expect(val(answerByRule(field("Last Name"), ctx({})))).toBe("McPhedrain");
+  expect(val(answerByRule(field("Email", { kind: "email" }), ctx({})))).toBe("rmcphedr@gmail.com");
+  expect(val(answerByRule(field("LinkedIn Profile"), ctx({})))).toBe("https://linkedin.com/in/ryanmcphedrain");
+  expect(val(answerByRule(field("GitHub URL"), ctx({})))).toBe("https://github.com/rmcphedr");
   expect(classify(field("Why do you want to work at Acme?", { kind: "textarea" }))).toBe("why_us");
   expect(classify(field("Phone"))).toBe("phone");
 });

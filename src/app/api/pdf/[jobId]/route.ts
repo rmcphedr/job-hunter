@@ -23,7 +23,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ jobId: s
   return new Response(new Uint8Array(pdf), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `${download ? "attachment" : "inline"}; filename="Sherif-Ashraf-Mohamed-${company}.pdf"`,
+      "Content-Disposition": `${download ? "attachment" : "inline"}; filename="Ryan-McPhedrain-${company}.pdf"`,
     },
   });
 }

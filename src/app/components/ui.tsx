@@ -11,7 +11,7 @@ export const DIMS = [
 ] as const;
 
 export const FEAS_LABEL: Record<string, [string, "ok" | "no" | ""]> = {
-  in_egypt: ["In Egypt", "ok"],
+  in_egypt: ["In Canada", "ok"],
   remote_from_egypt: ["Remote OK", "ok"],
   sponsors: ["Sponsors", "ok"],
   unclear: ["Unclear", ""],

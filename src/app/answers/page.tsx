@@ -61,8 +61,8 @@ export default async function Answers({ searchParams }: { searchParams: Promise<
       <form className="panel" action={setupAction}>
         <h2>{seeded ? "Your details" : "Set up your answers"}</h2>
         <p className="hint">Forms ask for these and your resume doesn&apos;t have them. Each one is saved under the usual ways forms phrase the question.</p>
-        <label className="field"><span>Phone (with country code)</span><input name="phone" required defaultValue={seed("Phone")} placeholder="+20 1xx xxx xxxx" /><small>Used for every &quot;Phone&quot; field</small></label>
-        <label className="field"><span>City</span><input name="city" required defaultValue={seed("City")} placeholder="Cairo, Egypt" /><small>For location fields</small></label>
+        <label className="field"><span>Phone (with country code)</span><input name="phone" required defaultValue={seed("Phone")} placeholder="+1 236 512 2798" /><small>Used for every &quot;Phone&quot; field</small></label>
+        <label className="field"><span>City</span><input name="city" required defaultValue={seed("City")} placeholder="Montreal, QC, Canada" /><small>For location fields</small></label>
         <label className="field"><span>Notice period / start date</span><input name="noticePeriod" defaultValue={seed("Notice period")} placeholder="Available immediately" /><small>For &quot;when can you start&quot;</small></label>
         <label className="field"><span>Willing to relocate</span>
           <select name="relocate" defaultValue={seed("Willing to relocate?") || "Yes"}><option>Yes</option><option>No</option></select><small>Sponsorship is answered separately by rule</small></label>
@@ -81,8 +81,8 @@ export default async function Answers({ searchParams }: { searchParams: Promise<
           </select>
           <small>In the listing&apos;s own currency and period. No salary posted and the form asks: the job waits in Needs you. <button className="btn" type="submit">Save</button></small>
         </form>
-        <div className="field"><span>Visa sponsorship</span><b>Yes or No</b><small>No for jobs in Egypt and remote roles you can do from Egypt; Yes for the US and for on-site or hybrid jobs elsewhere.</small></div>
-        <div className="field"><span>Work authorization</span><b>Egypt only</b><small>&quot;Authorized to work in the US/UK/...?&quot; is answered No.</small></div>
+        <div className="field"><span>Visa sponsorship</span><b>Yes or No</b><small>No for jobs in Canada and remote roles you can do from Canada; Yes for on-site or hybrid jobs outside Canada.</small></div>
+        <div className="field"><span>Work authorization</span><b>Canada only</b><small>&quot;Authorized to work in Canada?&quot; is Yes; the US/UK/... is answered No.</small></div>
         <div className="field"><span>Gender, race, veteran, disability</span><b>Decline</b><small>Picks the &quot;decline to answer&quot; option. If there isn&apos;t one, the job waits for you.</small></div>
       </section>
 

@@ -53,7 +53,7 @@ npm run worker   # searches now, then every 4 hours (Settings → "Search every"
 
 ## How it works
 
-**Finding.** Companies are seeded from YC's hiring list and `data/egypt-companies.json` by probing each ATS, plus every board link seen in other sources. Duplicate listings merge (same company and role), and the company's own ATS link wins. A free pre-filter drops non-software titles, internships, staff/principal/manager roles and listings asking for 8+ years.
+**Finding.** Companies are seeded from YC's hiring list and `data/canada-companies.json` by probing each ATS, plus every board link seen in other sources. Duplicate listings merge (same company and role), and the company's own ATS link wins. A free pre-filter drops titles outside the data science / ML / applied AI / research targets, internships, staff/principal/manager roles and listings asking for 10+ years.
 
 **Ranking.** Jev scores each job once; the composite score comes from your weights, so changing them doesn't cost another call. Jobs you can't take (wrong country, no sponsorship) are kept out of the Apply flow.
 
@@ -104,7 +104,7 @@ The app reads your resume from `resume.tex`, but some facts about me are written
 | Work authorization and sponsorship answers | `needsSponsorship` and `authorized` in `src/apply/rules.ts`, plus the hints in `src/app/answers/page.tsx` |
 | Which titles to keep or drop | `INCLUDE`, `EXCLUDE` and `TOO_SENIOR` in `src/pipeline/prefilter.ts` |
 | LinkedIn searches | `ROLES` in `src/app/api/ext/collect/route.ts` |
-| Local companies to probe | `data/egypt-companies.json` (name and ATS slugs) |
+| Local companies to probe | `data/canada-companies.json` (name and ATS slugs) |
 | Weights, cutoff, caps, budget, extra skills | The dashboard's **Settings** and **Sites & caps** pages (no code) |
 
 Jobs already scored keep their old scores, so change these before your first search, or start from a fresh database.

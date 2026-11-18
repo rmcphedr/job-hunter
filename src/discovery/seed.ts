@@ -27,7 +27,8 @@ export async function addCompanies(refs: (BoardRef & { name: string; origin: "se
 }
 
 async function seedNames(): Promise<SeedName[]> {
-  const egypt = JSON.parse(readFileSync(path.join(process.cwd(), "data/egypt-companies.json"), "utf8")) as { name: string; slugs: string[] }[];
+  // Canadian / remote-friendly seed list (origin keeps the "seed_egypt" DB enum value).
+  const egypt = JSON.parse(readFileSync(path.join(process.cwd(), "data/canada-companies.json"), "utf8")) as { name: string; slugs: string[] }[];
   const yc = await getJson<{ name: string; slug: string; website?: string }[]>("https://yc-oss.github.io/api/companies/hiring.json");
   return [
     ...egypt.map((e) => ({ name: e.name, slugs: e.slugs, origin: "seed_egypt" as const })),
@@ -46,7 +47,7 @@ export async function seedCompanies(opts: { maxNames?: number } = {}): Promise<{
   const limit = pLimit(8);
   let added = 0;
   await Promise.all(batch.map((n) => limit(async () => {
-    // Workable rate-limits hard and is mostly used by MENA companies, so only the Egypt list probes it.
+    // Workable rate-limits hard, so only the small hand-picked seed list probes it.
     const atsList = n.origin === "seed_egypt" ? undefined : (["greenhouse", "lever", "ashby"] as const).slice();
     const hits = await probeSlugs(n.name, n.website, n.slugs, atsList);
     added += await addCompanies(hits.map((h) => ({ ...h, name: n.name, origin: n.origin })));

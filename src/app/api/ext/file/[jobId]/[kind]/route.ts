@@ -19,7 +19,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ jobId: s
   const pdf = (bytes: Uint8Array, name: string) => new Response(Buffer.from(bytes), {
     headers: { "content-type": "application/pdf", "content-disposition": `attachment; filename="${name}"` },
   });
-  if (kind === "resume" && t?.pdfPath) return pdf(await readFile(t.pdfPath), "Sherif_Ashraf_Mohamed_Resume.pdf");
-  if (kind === "cover" && t?.coverLetter) return pdf(await coverLetterPdf(t.coverLetter, await loadProfile()), "Sherif_Ashraf_Mohamed_Cover_Letter.pdf");
+  if (kind === "resume" && t?.pdfPath) return pdf(await readFile(t.pdfPath), "Ryan_McPhedrain_Resume.pdf");
+  if (kind === "cover" && t?.coverLetter) return pdf(await coverLetterPdf(t.coverLetter, await loadProfile()), "Ryan_McPhedrain_Cover_Letter.pdf");
   return new Response("Not found", { status: 404 });
 }

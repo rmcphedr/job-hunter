@@ -1,9 +1,11 @@
 import { test, expect } from "vitest";
 import { truthCheck, baseResume, sourceText } from "@/tailor/truth";
-import { parseResumeFile } from "@/profile/load";
+import { readFileSync } from "node:fs";
+import { parseResumeTex } from "@/profile/parseLatex";
 import type { TailoredResume } from "@/tailor/types";
 
-const p = parseResumeFile();
+// Runs against a fixed sample resume so these checks don't change when resume.tex does.
+const p = parseResumeTex(readFileSync("tests/fixtures/sample-resume.tex", "utf8"));
 const noFlags = async () => [] as string[];
 
 function withBullet(text: string, source: string): TailoredResume {

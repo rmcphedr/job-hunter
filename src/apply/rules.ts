@@ -80,21 +80,21 @@ function salaryFill(f: FormField, c: RuleCtx): Fill | "no_salary" | null {
   return value == null ? null : { id: f.id, label: f.label, value, source: "rule" };
 }
 
-/** Spec section 4: Egypt and remote-from-Egypt contractor roles need no sponsorship; everything else does. */
+/** Jobs in Canada and remote roles open to Canada need no sponsorship; everything else does. ("in_egypt" = home country, kept for the DB enum.) */
 function needsSponsorship(c: RuleCtx): boolean {
-  if (c.job.country === "EG" || c.canTake === "in_egypt") return false;
+  if (c.job.country === "CA" || c.canTake === "in_egypt") return false;
   if (c.job.remotePolicy === "remote" && c.canTake === "remote_from_egypt") return false;
   return true;
 }
 
 const COUNTRY_WORDS = /\b(united states|u\.s\.a?|usa|america|united kingdom|uk|britain|england|canada|germany|france|netherlands|spain|ireland|european union|eu|europe|uae|united arab emirates|saudi|qatar|australia|singapore|india|israel)\b/i;
 
-/** Sherif is authorized to work in Egypt only. */
+/** Ryan is authorized to work in Canada only (job-search-agent config/profile.yml: work_authorization: Canada). */
 function authorized(f: FormField, c: RuleCtx): boolean {
   const l = f.label;
-  if (/egypt/i.test(l)) return true;
+  if (/canad/i.test(l)) return true;
   if (COUNTRY_WORDS.test(l)) return false;
-  return c.job.country === "EG";
+  return c.job.country === "CA";
 }
 
 const DECLINE = /decline|prefer not|don't wish|do not wish|not to (say|answer|disclose)|rather not/i;

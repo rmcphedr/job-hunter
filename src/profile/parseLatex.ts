@@ -74,6 +74,10 @@ export function parseResumeTex(tex: string): BaseProfile {
 
   return {
     name, headline, links, roles, quote, projects, skills, education, awards,
-    facts: { citizenship: "Egypt", location: "Egypt", yearsExperience: 2 },
+    // Sources: job-search-agent/config/profile.yml (work_authorization: Canada) and user/career_profile.md
+    // ("Authorized to work in Canada"); location from the resume header; 8+ years from the resume summary
+    // (profile.yml: count relevant PhD and postdoctoral years).
+    // TODO(ryan): citizenship isn't stated in your files, only Canadian work authorization. Confirm before relying on it.
+    facts: { citizenship: "Authorized to work in Canada (citizenship not recorded)", location: "Montreal, QC, Canada", yearsExperience: 8 },
   };
 }

@@ -96,7 +96,7 @@ const COUNTRY_PATTERNS: [RegExp, string][] = [
   [/\b(germany|berlin|munich|hamburg)\b/i, "DE"],
   [/\b(uae|united arab emirates|dubai|abu dhabi)\b/i, "AE"],
   [/\b(saudi|riyadh|jeddah|ksa)\b/i, "SA"],
-  [/\b(canada|toronto|vancouver|montreal)\b/i, "CA"],
+  [/\b(canada|toronto|vancouver|montr[eé]al|qu[eé]bec|ottawa|calgary|edmonton|waterloo|ontario|british columbia|alberta|laval|gatineau|winnipeg|halifax|victoria, bc)\b/i, "CA"],
   [/\b(netherlands|amsterdam|rotterdam)\b/i, "NL"],
   [/\b(france|paris)\b/i, "FR"],
   [/\b(spain|madrid|barcelona)\b/i, "ES"],

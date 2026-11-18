@@ -7,7 +7,8 @@ import { sites } from "@/db/schema";
 
 export const dynamic = "force-dynamic";
 
-const ROLES = ["AI engineer", "founding engineer", "full stack engineer", "product engineer", "software engineer"];
+// From job-search-agent/config/target_roles.yml.
+const ROLES = ["applied research scientist", "machine learning scientist", "machine learning engineer", "data scientist", "research scientist", "AI engineer", "computational biologist", "computational neuroscience"];
 
 /** Whether a LinkedIn collection pass is due, and the searches to run (last 24 hours, no location filter). */
 export async function GET(req: Request) {

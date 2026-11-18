@@ -1,0 +1,23 @@
+[
+  {"name": "Valence Labs", "slugs": ["valencelabs"]},
+  {"name": "Eli Health", "slugs": ["eli"]},
+  {"name": "Beacon Biosignals", "slugs": ["beaconbiosignals"]},
+  {"name": "Toboggan Labs", "slugs": ["tobogganlabs"]},
+  {"name": "Layer Health", "slugs": ["layerhealth"]},
+  {"name": "Bayesian Health", "slugs": ["bayesianhealth"]},
+  {"name": "Heidi", "slugs": ["heidihealth.com.au"]},
+  {"name": "Arbor Neuroscience", "slugs": ["convergentresearch"]},
+  {"name": "Limbic", "slugs": ["limbic"]},
+  {"name": "Nanofacile", "slugs": ["nanofacile"]},
+  {"name": "Oncoustics", "slugs": ["oncoustics"]},
+  {"name": "Function Health", "slugs": ["functionhealth"]},
+  {"name": "Prenuvo", "slugs": ["prenuvo"]},
+  {"name": "Optina Diagnostics", "slugs": ["optina"]},
+  {"name": "Helix", "slugs": ["helix"]},
+  {"name": "Cohere", "slugs": []},
+  {"name": "LawZero", "slugs": []},
+  {"name": "M31 AI", "slugs": []},
+  {"name": "DarkVision", "slugs": []},
+  {"name": "Clio", "slugs": []},
+  {"name": "Charles River Laboratories", "slugs": []}
+]

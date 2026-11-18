@@ -1,4 +1,4 @@
-\documentclass[a4paper,10pt]{article}
+\documentclass[letterpaper,10pt]{article}
 
 % Compiles with pdfLaTeX, including on Overleaf's default settings.
 \usepackage{iftex}
@@ -11,7 +11,7 @@
   \setsansfont{TeX Gyre Heros}[Scale=0.92]
 \fi
 \renewcommand{\familydefault}{\sfdefault}
-\usepackage[a4paper,margin=0.5in]{geometry}
+\usepackage[letterpaper,margin=0.5in]{geometry}
 \usepackage{enumitem}
 \usepackage{titlesec}
 \usepackage[hidelinks]{hyperref}
@@ -38,69 +38,67 @@
 \begin{document}
 
 \begin{center}
-{\LARGE\textbf{Sherif Ashraf Mohamed}}\par\vspace{4pt}
-{\normalsize Full-Stack AI Engineer}\par\vspace{3pt}
+{\LARGE\textbf{Ryan McPhedrain}}\par\vspace{4pt}
+{\normalsize Machine Learning Scientist and Applied AI Developer}\par\vspace{3pt}
 \small
-\href{mailto:sherifelamir2003@gmail.com}{sherifelamir2003@gmail.com} | \href{https://linkedin.com/in/sherifElamir}{linkedin.com/in/sherifElamir} | \href{https://github.com/SherifAshraf2003}{github.com/SherifAshraf2003}
+\href{mailto:rmcphedr@gmail.com}{rmcphedr@gmail.com} | 236-512-2798 | Montreal, QC | \href{https://linkedin.com/in/ryanmcphedrain}{linkedin.com/in/ryanmcphedrain} | \href{https://github.com/rmcphedr}{github.com/rmcphedr}
 \end{center}
 
+\section{Summary}
+Machine learning scientist and applied AI developer with a PhD in Neuroscience and 8+ years of experience turning complex biomedical and behavioral data into actionable insights. Builds reproducible Python pipelines, develops and evaluates statistical and machine learning models, and designs agentic workflows to automate business processes. Brings scientific rigor, practical engineering skills, and clear communication to collaborative research and client projects.
+
 \section{Experience}
-\role{Founding Engineer}{Dialbird}{Feb 2026 -- Oct 2026}
+\role{Independent AI Consultant}{Montreal, QC}{2026 -- Present}
 \begin{itemize}
-    \item Owned the web application and a large part of the backend, shipping features from design through production for thousands of daily active users.
-    \item Took over a failing conference-calling feature and re-architected it into a conference-calling engine with explicit state diagrams, validated state transitions, and the database as the single source of truth.
-    \item Built Dialbird's AI agents: a real-time voice agent served over Twilio that handled concurrent users with no loss in voice quality, an AI messaging agent, and a campaign caller.
-    \item Built integrations with HubSpot, Zapier, GoHighLevel, Slack, and other third-party platforms.
-    \item Built backend services for asynchronous processing using Redis, job queues, and background jobs.
-    \item Ran production on AWS (ECS, EC2, VPCs, load balancers, databases) with CI/CD, and cut AWS costs by about 30\% by optimizing ECS services and EC2 instances.
-\end{itemize}
-\textit{``I could always count on Sherif to deliver, no matter how complex the task or challenge.''} -- Omar Aboufandi, Co-Founder\par
-\vspace{3pt}
-
-\role{Founding Engineer and COO}{PlawLabs (Vulnzap, Brief)}{Apr 2025 -- Jan 2026}
-\begin{itemize}
-    \item Built and launched the frontend, VS Code extension, and MCP tool for Vulnzap, a vulnerability management platform.
-    \item Architected the developer-facing ecosystem, enabling real-time security scanning and vulnerability tracking from the IDE.
-    \item Improved detection efficiency by approximately 40\% and supported integration across multiple development pipelines using React, TypeScript, Node.js, Redis, and Supabase.
-    \item Built Brief, an AI web app that summarizes information in seconds, using Next.js, OpenRouter, Groq, and Supabase.
+    \item Built an end-to-end AI-assisted recruiting workflow that consolidates in-house legal openings across multiple sources, ranks opportunities, identifies relevant contacts, and drafts outreach for human review, with an integrated dashboard for monitoring results.
+    \item Developed a client-facing platform to support on-demand brand ambassador staffing, centralizing candidate profiles and sourcing workflows while building automated lead discovery and outreach capabilities.
 \end{itemize}
 \vspace{3pt}
 
-\role{Freelance Full-Stack and AI Developer}{Upwork}{Aug 2025 -- Present}
+\role{Postdoctoral Researcher}{Mila / McGill University, Montreal, QC}{2024 -- 2026}
 \begin{itemize}
-    \item Delivered client projects end to end, earning a 100\% Job Success Score across 6 completed jobs.
+    \item Engineered reproducible Python pipelines for large, multi-study human fMRI time-series datasets, integrating temporal filtering, denoising, artifact screening, quality control, feature extraction, statistical analysis, and automated figure generation.
+    \item Led data harmonization across 13 studies, 300+ participants, and 500+ scans from teams on 3 continents, resolving differences in acquisition and preprocessing while systematically investigating data-quality and comparability issues.
+    \item Implemented a BERT-based semantic harmonization framework to align heterogeneous questionnaire items into shared dimensions, enabling previously incompatible behavioral measures to be analyzed consistently across studies.
+    \item Developed multimodal workflows integrating human neuroimaging with rodent transcriptomic data, defining comparable features and validation steps across modalities for cross-species analyses.
+    \item Worked directly with collaborating investigators to resolve dataset discrepancies, document analytic decisions, communicate methodological tradeoffs, and translate study-specific requirements into reproducible computational workflows.
 \end{itemize}
 \vspace{3pt}
 
-\role{Network Operations Center Intern}{Orange Egypt}{Aug 2024 -- Sep 2024}
+\role{Research Consultant (Internship)}{The Decision Lab, Montreal, QC}{2023 (4 months)}
 \begin{itemize}
-    \item Increased KPI monitoring efficiency by 65\% by building a React and Node.js web app that analyzed Excel traffic cell data and automated custom reporting.
+    \item Built and deployed an interactive Python/NLP application over 1,000+ survey responses, translating model outputs into client-facing insights and visual reporting.
+    \item Developed and evaluated machine-learning workflows (PCA, K-means, decision trees) for behavioral segmentation, with emphasis on interpretable results and robust comparison across modeling choices.
+    \item Published 4 original articles on behavioral science and data-driven decision making, collaborating with interdisciplinary teams on applied research projects.
+\end{itemize}
+\vspace{3pt}
+
+\role{Graduate Researcher}{McGill University, Montreal, QC}{2016 -- 2023}
+\begin{itemize}
+    \item Designed and executed experimental neuroscience studies combining in vivo imaging, electrophysiology, molecular biology, and quantitative analysis to investigate mechanisms of developmental neuroplasticity.
+    \item Developed Python-based analysis pipelines to automate detection and quantification of neural structures and experimental signals, replacing labor-intensive manual analysis with reproducible computational workflows.
+    \item Built statistical analyses linking neural activity, cellular structure, and experimental interventions across longitudinal datasets, with careful attention to signal quality, biological variability, and experimental controls.
+    \item Communicated findings through a first-author manuscript and six conference presentations, and collaborated closely with experimental and computational researchers throughout study design, analysis, review, and publication.
 \end{itemize}
 
 \section{Projects}
 \begin{itemize}
-    \item \textbf{LeadMate (Co-Founder):} Co-founded and built the infrastructure and frontend of an AI lead generation SaaS with 100 users, automating WhatsApp responses in under 3 seconds with real-time lead tracking and analytics. Tech: Next.js, Node.js, Twilio, Supabase.
-    \item \textbf{Manasetak:} Built an education platform where instructors create custom course portals, with secure session-based authentication, subscription management, and custom domains. Improved performance using server-side rendering and Incremental Static Regeneration. Tech: React, Next.js.
-    \item \textbf{AI Study Assistant:} Built a RAG application that lets users upload documents and query them through a chatbot backed by a vector database. Tech: Next.js, LangChain, Pinecone.
+    \item \textbf{Agentic AI Workflow Systems (2026):} Built a personal job-search automation system that consolidates opportunities, evaluates fit against explicit criteria, and tracks applications and follow-ups through a centralized dashboard. Deployed a VPS-hosted Hermes agent integrated with Notion and Google Workspace to coordinate task capture, weekly planning, calendar scheduling, and progress tracking.
 \end{itemize}
 
 \section{Skills}
-\textbf{Languages:} TypeScript, JavaScript, SQL, C, C++, Python\par\vspace{2pt}
-\textbf{Frameworks and Libraries:} React, Next.js, Node.js, Tailwind CSS, LangChain\par\vspace{2pt}
-\textbf{AI:} LLMs, RAG, Voice Agents, Pinecone, MCP\par\vspace{2pt}
-\textbf{Backend:} Redis, Job Queues, Background Jobs, Upstash, Supabase, Twilio\par\vspace{2pt}
-\textbf{Cloud and Infrastructure:} AWS (ECS, EC2, VPC, Load Balancers), CI/CD\par\vspace{2pt}
-\textbf{Databases:} PostgreSQL, MySQL, MongoDB
+\textbf{Machine Learning and Evaluation:} Python (NumPy, pandas, SciPy, scikit-learn, PyTorch, statsmodels, XGBoost), Classification and Regression, Cross-Validation, Baseline Comparisons, Confounding and Leakage Checks, PCA / ICA, CCA / PLS\par\vspace{2pt}
+\textbf{Agentic AI and Engineering:} LLM Integrations, Workflow Automation, Hermes, Cursor / Codex, Structured Evaluation, Logging, Git and GitHub, Docker, Linux, HPC, Reproducible Research Code\par\vspace{2pt}
+\textbf{Research and Communication:} Experimental Design, Statistical Modeling, Multi-Study Data Harmonization, Quality Control, Scientific Writing, Data Visualization, Interdisciplinary Collaboration, Client-Facing Reporting
 
 \section{Education}
-\role{B.E. in Computer Engineering}{Egypt University of Informatics (EUI)}{Sep 2021 -- Jun 2026}
-\textbf{Relevant Coursework:} Data Structures and Algorithms, Operating Systems, Computer Networks, Databases, Machine Learning, Neural Networks, Computer Vision, Information Retrieval
+\role{PhD in Neuroscience (4.0 GPA)}{McGill University, Montreal, QC}{2016 -- 2023}
+\role{BSc (Honours) in Molecular Biology and Biochemistry (3.93 GPA)}{Simon Fraser University, Burnaby, BC}{2010 -- 2015}
 
 \section{Awards}
 \begin{itemize}
-    \item \textbf{Minesweeper Robotics Challenge:} 1st place regionally for designing a robot to detect landmines in a simulated field.
-    \item \textbf{Egyptian Collegiate Programming Contest (ECPC):} Competed for three consecutive years.
-    \item \textbf{ROV Competition:} Helped design and build a submarine to perform underwater tasks.
+    \item \textbf{1st Place, MedTech Hackathon Challenge (2021):} Designed a computationally efficient wearable device for detecting arrhythmias in performing athletes using built-in physiological signal compression and a lightweight machine-learning model suitable for edge inference.
+    \item \textbf{2nd Place, MedTech Hackathon Challenge (2023):} Developed a clinical decision-support system for emergency-department patient flow using predictive modeling to improve inpatient bed-allocation decisions.
 \end{itemize}
 
 \end{document}
