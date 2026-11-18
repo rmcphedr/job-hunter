@@ -1,0 +1,173 @@
+import {
+  pgTable, serial, text, integer, boolean, timestamp, numeric, real, jsonb, pgEnum, uniqueIndex, index,
+} from "drizzle-orm/pg-core";
+
+export const atsEnum = pgEnum("ats", ["greenhouse", "lever", "ashby", "workable"]);
+export const originEnum = pgEnum("company_origin", ["seed_yc", "seed_egypt", "harvested"]);
+export const remoteEnum = pgEnum("remote_policy", ["remote", "hybrid", "onsite", "unknown"]);
+export const periodEnum = pgEnum("salary_period", ["year", "month", "hour"]);
+export const jobStatusEnum = pgEnum("job_status", ["found", "filtered_out", "scored", "score_failed"]);
+export const feasibilityEnum = pgEnum("feasibility", ["in_egypt", "remote_from_egypt", "sponsors", "unclear", "not_possible"]);
+export const spendCategoryEnum = pgEnum("spend_category", ["scoring", "tailoring"]);
+export const runStatusEnum = pgEnum("run_status", ["running", "done", "failed", "abandoned"]);
+
+const ts = (name: string) => timestamp(name, { withTimezone: true });
+
+export const companies = pgTable("companies", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  ats: atsEnum("ats").notNull(),
+  slug: text("slug").notNull(),
+  origin: originEnum("origin").notNull(),
+  active: boolean("active").notNull().default(true),
+  failCount: integer("fail_count").notNull().default(0),
+  lastPolledAt: ts("last_polled_at"),
+}, (t) => [uniqueIndex("companies_ats_slug").on(t.ats, t.slug)]);
+
+export const jobs = pgTable("jobs", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  title: text("title").notNull(),
+  companyName: text("company_name").notNull(),
+  location: text("location").notNull().default(""),
+  country: text("country"),
+  remotePolicy: remoteEnum("remote_policy").notNull().default("unknown"),
+  salaryMin: numeric("salary_min", { mode: "number" }),
+  salaryMax: numeric("salary_max", { mode: "number" }),
+  salaryCurrency: text("salary_currency"),
+  salaryPeriod: periodEnum("salary_period"),
+  salaryUsdYearMid: numeric("salary_usd_year_mid", { mode: "number" }),
+  descriptionText: text("description_text").notNull().default(""),
+  applyUrl: text("apply_url").notNull(),
+  firstSeenAt: ts("first_seen_at").notNull().defaultNow(),
+  lastSeenAt: ts("last_seen_at").notNull().defaultNow(),
+  closedAt: ts("closed_at"),
+  status: jobStatusEnum("status").notNull().default("found"),
+  statusReason: text("status_reason"),
+  scoreAttempts: integer("score_attempts").notNull().default(0),
+}, (t) => [index("jobs_status").on(t.status)]);
+
+export const jobSources = pgTable("job_sources", {
+  id: serial("id").primaryKey(),
+  jobId: integer("job_id").notNull().references(() => jobs.id, { onDelete: "cascade" }),
+  source: text("source").notNull(),
+  externalId: text("external_id").notNull(),
+  url: text("url").notNull(),
+  boardSlug: text("board_slug"),
+}, (t) => [uniqueIndex("job_sources_source_ext").on(t.source, t.externalId), index("job_sources_job").on(t.jobId)]);
+
+export const jobScores = pgTable("job_scores", {
+  jobId: integer("job_id").primaryKey().references(() => jobs.id, { onDelete: "cascade" }),
+  engine: text("engine").notNull(),
+  scope: real("scope").notNull(),
+  company: real("company").notNull(),
+  pay: real("pay").notNull(),
+  level: real("level").notNull(),
+  fit: real("fit").notNull(),
+  canTake: feasibilityEnum("can_take").notNull(),
+  canTakeConfidence: real("can_take_confidence").notNull(),
+  raw: jsonb("raw"),
+  scoredAt: ts("scored_at").notNull().defaultNow(),
+});
+
+export const spend = pgTable("spend", {
+  id: serial("id").primaryKey(),
+  at: ts("at").notNull().defaultNow(),
+  category: spendCategoryEnum("category").notNull(),
+  provider: text("provider").notNull(),
+  model: text("model").notNull(),
+  usd: numeric("usd", { mode: "number" }).notNull(),
+  inputTokens: integer("input_tokens").notNull().default(0),
+  outputTokens: integer("output_tokens").notNull().default(0),
+});
+
+export const settings = pgTable("settings", {
+  key: text("key").primaryKey(),
+  value: jsonb("value").notNull(),
+});
+
+export const profile = pgTable("profile", {
+  id: integer("id").primaryKey(),
+  data: jsonb("data").notNull(),
+  updatedAt: ts("updated_at").notNull().defaultNow(),
+});
+
+export const runs = pgTable("runs", {
+  id: serial("id").primaryKey(),
+  startedAt: ts("started_at"),
+  finishedAt: ts("finished_at"),
+  status: runStatusEnum("status"),
+  requested: boolean("requested").notNull().default(false),
+  stats: jsonb("stats"),
+});
+
+export const tierEnum = pgEnum("tailor_tier", ["top", "middle", "bottom"]);
+
+export const tailorings = pgTable("tailorings", {
+  jobId: integer("job_id").primaryKey().references(() => jobs.id, { onDelete: "cascade" }),
+  tier: tierEnum("tier").notNull(),
+  model: text("model").notNull(),
+  resume: jsonb("resume"),
+  issues: jsonb("issues"),
+  diff: jsonb("diff"),
+  coverLetter: text("cover_letter"),
+  gapReport: jsonb("gap_report"),
+  prep: jsonb("prep"),
+  pdfPath: text("pdf_path"),
+  error: text("error"),
+  attempts: integer("attempts").notNull().default(1),
+  usd: numeric("usd", { mode: "number" }).notNull().default(0),
+  createdAt: ts("created_at").notNull().defaultNow(),
+}, (t) => [index("tailorings_created").on(t.createdAt)]);
+
+export const appStatusEnum = pgEnum("app_status", [
+  "queued", "filling", "ready_to_submit", "needs_you", "submitting", "applied", "skipped", "failed", "manual", "interviewing", "rejected", "offer",
+]);
+export const siteEnum = pgEnum("site", ["greenhouse", "lever", "ashby", "workable", "linkedin", "other"]);
+export const answerSourceEnum = pgEnum("answer_source", ["seed", "drafted", "edited"]);
+export const siteEventEnum = pgEnum("site_event", ["captcha", "blocked", "login_wall", "warning"]);
+
+export const applications = pgTable("applications", {
+  jobId: integer("job_id").primaryKey().references(() => jobs.id, { onDelete: "cascade" }),
+  status: appStatusEnum("status").notNull().default("queued"),
+  site: siteEnum("site").notNull(),
+  boardKey: text("board_key").notNull(),
+  targetUrl: text("target_url").notNull(),
+  reason: text("reason"),
+  fills: jsonb("fills"),
+  approved: boolean("approved").notNull().default(false),
+  /** Sherif pressed Apply on this job himself: it goes ahead of the jobs the app picked. */
+  picked: boolean("picked").notNull().default(false),
+  leaseAt: ts("lease_at"),
+  filledAt: ts("filled_at"),
+  appliedAt: ts("applied_at"),
+  queuedAt: ts("queued_at").notNull().defaultNow(),
+  attempts: integer("attempts").notNull().default(0),
+}, (t) => [index("applications_status").on(t.status)]);
+
+export const answers = pgTable("answers", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  question: text("question").notNull(),
+  answer: text("answer").notNull(),
+  source: answerSourceEnum("source").notNull(),
+  isNew: boolean("is_new").notNull().default(false),
+  updatedAt: ts("updated_at").notNull().defaultNow(),
+});
+
+export const sites = pgTable("sites", {
+  site: siteEnum("site").primaryKey(),
+  autoSubmit: boolean("auto_submit").notNull().default(true),
+  dailyCap: integer("daily_cap"),
+  paused: boolean("paused").notNull().default(false),
+  pauseReason: text("pause_reason"),
+  pausedAt: ts("paused_at"),
+});
+
+export const siteEvents = pgTable("site_events", {
+  id: serial("id").primaryKey(),
+  site: siteEnum("site").notNull(),
+  kind: siteEventEnum("kind").notNull(),
+  at: ts("at").notNull().defaultNow(),
+  jobId: integer("job_id"),
+}, (t) => [index("site_events_site_at").on(t.site, t.at)]);
