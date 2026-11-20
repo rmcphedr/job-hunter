@@ -30,6 +30,9 @@ export function resumeLlmConfig() {
     outputDirectory: path.isAbsolute(outDir) ? outDir : path.join(process.cwd(), outDir),
     templatePath: path.isAbsolute(template) ? template : path.join(process.cwd(), template),
     agentDir: path.join(process.cwd(), "agents", "resume-tailor"),
-    workspaceRoot: path.join(process.cwd(), "data", "codex-workspaces"),
+    workspaceRoot: (() => {
+      const w = process.env.CODEX_WORKSPACE_DIRECTORY?.trim() || path.join("data", "codex-workspaces");
+      return path.isAbsolute(w) ? w : path.join(process.cwd(), w);
+    })(),
   };
 }

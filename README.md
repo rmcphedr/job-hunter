@@ -2,7 +2,7 @@
 
 A job-hunting agent that runs on your own machine. It finds software jobs, ranks them for you, tailors your resume to each one without inventing anything, and fills the application in your own Chrome. You approve what gets sent.
 
-I built it for my own search: an engineer in Egypt applying to remote, Egypt-based and relocation roles. Out of the box it is set up for me; [Make it yours](#make-it-yours) lists the files to change for your own search.
+Forked from [SherifAshraf2003/job-hunter](https://github.com/SherifAshraf2003/job-hunter) (Apache-2.0) and personalized for Ryan McPhedrain: Montreal-based, authorized to work in Canada, targeting data science / ML / applied AI and research roles in Canada (Montreal first, then Vancouver) or remote roles open to Canada. [Make it yours](#make-it-yours) lists the files that hold those facts.
 
 ![The Apply tab: jobs waiting for approval on the left, the selected job's score breakdown and tailored resume on the right](docs/screenshot.png)
 
@@ -44,7 +44,7 @@ Keys stay in `.env` (git-ignored) and never reach the extension.
 ## Run
 
 ```bash
-npm run dev      # dashboard at http://localhost:3000
+npm run dev      # dashboard at http://localhost:3200 (the extension talks to this port)
 npm run worker   # searches now, then every 4 hours (Settings → "Search every")
 ```
 
@@ -73,12 +73,12 @@ npm run worker   # searches now, then every 4 hours (Settings → "Search every"
 - Fields are answered from your profile, then fixed rules (salary, sponsorship, work authorization, EEO), then your saved answers, then one model call for anything new. New answers are saved for you to review under **Saved answers**. A question your facts can't answer is never guessed: the job waits for you.
 - **Dry run is on by default**: forms are filled but never submitted. Turn it off in **Sites & caps**.
 - **Trust period:** the first 10 applications that would be submitted wait for you to press **Approve**.
-- **LinkedIn is fill-only.** The extension stops on Easy Apply's review screen and leaves the tab for you.
+- **LinkedIn is off by default, and fill-only when on.** The extension stops on Easy Apply's review screen and leaves the tab for you.
 - Sites other than Greenhouse, Lever, Ashby, Workable and LinkedIn show up as **Apply yourself**.
 
 **Safety.** Editable caps: 15 LinkedIn forms a day, 3 a day per company board, 60 a day overall, 2 applications to the same company in 30 days. Random pauses between fields (0.4–1.5 s) and between jobs (90–240 s), one tab at a time. Three captchas in an hour, an "unusual activity" page or a logout pauses that site. **Pause everything** stops all applying.
 
-LinkedIn's terms prohibit automated tools on its site. The LinkedIn collector and filler are optional; use them at your own risk.
+LinkedIn's terms prohibit automated tools on its site, so **LinkedIn automation is off by default** (Sites & caps → LinkedIn automation): nothing is collected from LinkedIn, and jobs only reachable through LinkedIn go to **Apply yourself**. Turning it on is at your own risk.
 
 ## Chrome extension
 

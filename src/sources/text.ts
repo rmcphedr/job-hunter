@@ -91,12 +91,13 @@ export function inferRemote(location: string, text: string): NormalizedJob["remo
 }
 
 const COUNTRY_PATTERNS: [RegExp, string][] = [
+  // Canada first: a multi-location listing ("London; ...; Toronto; Montreal") that includes a Canadian office counts as Canada.
+  [/\b(canada|toronto|vancouver|montr[eé]al|qu[eé]bec|ottawa|calgary|edmonton|waterloo|ontario|british columbia|alberta|laval|gatineau|winnipeg|halifax|victoria, bc)\b/i, "CA"],
   [/\b(egypt|cairo|alexandria|giza|new cairo|6th of october|smart village)\b/i, "EG"],
   [/\b(united kingdom|uk|london|manchester|edinburgh|england|scotland)\b/i, "GB"],
   [/\b(germany|berlin|munich|hamburg)\b/i, "DE"],
   [/\b(uae|united arab emirates|dubai|abu dhabi)\b/i, "AE"],
   [/\b(saudi|riyadh|jeddah|ksa)\b/i, "SA"],
-  [/\b(canada|toronto|vancouver|montr[eé]al|qu[eé]bec|ottawa|calgary|edmonton|waterloo|ontario|british columbia|alberta|laval|gatineau|winnipeg|halifax|victoria, bc)\b/i, "CA"],
   [/\b(netherlands|amsterdam|rotterdam)\b/i, "NL"],
   [/\b(france|paris)\b/i, "FR"],
   [/\b(spain|madrid|barcelona)\b/i, "ES"],

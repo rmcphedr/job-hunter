@@ -61,7 +61,7 @@ export function JobRow({ j, i, w, href, current }: { j: RankedJob; i: number; w:
 }
 
 type App = AppJob["app"];
-/** What an application's state means for Sherif, in his words. "act" means it's waiting on him. */
+/** What an application's state means for Ryan, in his words. "act" means it's waiting on him. */
 export function appStatus(a: App): { label: string; tone: "act" | "work" | "good" | "bad" | "muted" } {
   switch (a.status) {
     case "ready_to_submit": return a.approved ? { label: "Approved, sending next", tone: "work" } : { label: "Approve to send", tone: "act" };

@@ -137,11 +137,20 @@ test("M1: non-canonical source aliases are dropped", async () => {
   expect(resume.roles[0].bullets.some((b) => b.source === "r0b03")).toBe(false);
 });
 
-test("C2: a skill category that isn't on the resume is dropped", async () => {
+test("C2: a skill category that isn't on the resume is dropped; its real skills go back to their own category", async () => {
   const r = baseResume(p);
-  r.skills = [{ category: "Kubernetes, Terraform, Go, 8 years", items: ["Redis"] }, { category: "AI", items: ["LLMs"] }];
+  r.skills = [{ category: "Kubernetes, Terraform, Go, 8 years", items: ["Redis", "Kubernetes"] }, { category: "AI", items: ["LLMs"] }];
   const { resume } = await check(r);
-  expect(resume.skills.map((c) => c.category)).toEqual(["AI"]);
+  expect(resume.skills).toEqual([{ category: "Backend", items: ["Redis"] }, { category: "AI", items: ["LLMs"] }]);
+  expect(resume.skills.flatMap((c) => c.items)).not.toContain("Kubernetes");
+});
+
+test("C2: renamed categories (a rewrite's own headings) don't empty the Skills section", async () => {
+  const r = baseResume(p);
+  r.skills = [{ category: "Programming", items: ["Python", "TypeScript"] }, { category: "Data", items: ["PostgreSQL", "Redis"] }];
+  const { resume } = await check(r);
+  expect(resume.skills.map((c) => c.category)).toEqual(["Languages", "Databases", "Backend"]);
+  expect(resume.skills.flatMap((c) => c.items).sort()).toEqual(["PostgreSQL", "Python", "Redis", "TypeScript"]);
 });
 
 test.each(["Security Engineer", "Data Engineer", "Infrastructure Engineer", "AI Engineer with 100 users"])(

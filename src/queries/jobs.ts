@@ -144,7 +144,7 @@ export const SENT_STATUSES = ["interviewing", "offer", "applied", "rejected"] as
 
 export type AppJob = RankedJob & { app: typeof applications.$inferSelect };
 
-/** Lower comes first: what waits on Sherif (approve, finish, apply yourself, failed), then what the app is still doing. */
+/** Lower comes first: what waits on Ryan (approve, finish, apply yourself, failed), then what the app is still doing. */
 export function todoRank(a: typeof applications.$inferSelect): number {
   if (a.status === "ready_to_submit") return a.approved ? 4 : 0;
   return { needs_you: 1, manual: 2, failed: 3 }[a.status as string] ?? 4;

@@ -1,5 +1,4 @@
 import { readFileSync } from "node:fs";
-import path from "node:path";
 import { and, eq, gte, isNull, lt, ne, or, sql } from "drizzle-orm";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
@@ -22,7 +21,7 @@ import { jobOutDir } from "./artifacts";
 import type { SourceRef, Tier } from "./types";
 import { tailorOneJob } from "./run";
 
-export const OUT_DIR = path.join(process.cwd(), "data", "out");
+export const OUT_DIR = resumeLlmConfig().outputDirectory;
 const startOfToday = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
 
 /**
@@ -33,7 +32,7 @@ const startOfToday = () => { const d = new Date(); d.setHours(0, 0, 0, 0); retur
  */
 export async function tailorPending(opts: {
   limit?: number;
-  /** Only these jobs, whatever their score: Sherif picked them himself. */
+  /** Only these jobs, whatever their score: Ryan picked them himself. */
   jobIds?: number[];
   generator?: { resume: typeof generateResume; extras: typeof generateExtras };
 } = {}) {

@@ -106,6 +106,7 @@ export async function buildFillPlan(jobId: number, fields: FormField[]): Promise
   let plan: FillPlan;
   if (noSalary) plan = { fills: list, action: "stop", status: "needs_you", reason: "No salary posted" };
   else if (missing) plan = { fills: list, action: "stop", status: "needs_you", reason: `Unknown required field: ${missing.label}` };
+  else if (a.site === "linkedin" && !cfg.linkedinAutomation) plan = { fills: [], action: "stop", status: "needs_you", reason: "LinkedIn automation is off; apply yourself" };
   else if (a.site === "linkedin") plan = { fills: list, action: "stop", status: "needs_you", reason: "LinkedIn: review and submit" };
   else if (siteRow && !siteRow.autoSubmit) plan = { fills: list, action: "stop", status: "needs_you", reason: "Auto-submit is off for this site" };
   else if (cfg.trustRemaining > 0 && !a.approved) plan = { fills: list, action: "stop", status: "ready_to_submit", reason: null };

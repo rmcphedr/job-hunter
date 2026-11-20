@@ -81,7 +81,7 @@ export default async function Settings({ searchParams }: { searchParams: Promise
             <small>{Math.round(cfg.weights[f.key] * 100)}% now</small>
           </label>
         ))}
-        <label className="field"><span>Score cutoff</span><input name="cutoff" type="number" min="0" max="100" defaultValue={cfg.cutoff} /><small>Jobs below this aren't tailored</small></label>
+        <label className="field"><span>Score cutoff</span><input name="cutoff" type="number" min="0" max="100" defaultValue={cfg.cutoff} /><small>Jobs below this aren&apos;t tailored</small></label>
         <label className="field"><span>Search every (hours)</span><input name="searchIntervalHours" type="number" min="1" max="48" defaultValue={cfg.searchIntervalHours} /><small>Takes effect after the next search</small></label>
         <label className="field"><span>Monthly AI budget ($)</span><input name="budgetUsdMonthly" type="number" min="1" step="1" defaultValue={cfg.budgetUsdMonthly} /><small>Half is reserved for tailoring. Every resume gets a full rewrite (about $0.02); above 90% of the budget it switches to a light one.</small></label>
         <button className="btn primary" type="submit">Save ranking settings</button>

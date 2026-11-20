@@ -17,7 +17,7 @@ const normCompany = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").t
 
 /**
  * Adds every tailored, open, takeable job without an application row to the queue. Unsupported sites are "manual".
- * With jobIds, only those jobs; with picked, they're marked as Sherif's own picks and go first.
+ * With jobIds, only those jobs; with picked, they're marked as Ryan's own picks and go first.
  */
 export async function queueApplications(opts: { jobIds?: number[]; picked?: boolean } = {}): Promise<{ queued: number; manual: number }> {
   const rows = await db.select({ id: jobs.id, applyUrl: jobs.applyUrl }).from(jobs)
@@ -28,13 +28,15 @@ export async function queueApplications(opts: { jobIds?: number[]; picked?: bool
       opts.jobIds ? inArray(jobs.id, opts.jobIds) : undefined));
   const out = { queued: 0, manual: 0 };
   if (!rows.length) return out;
+  const { linkedinAutomation } = await loadSettings();
   const srcs = await db.select().from(jobSources).where(inArray(jobSources.jobId, rows.map((r) => r.id)));
   for (const r of rows) {
     const t = pickApplyTarget(r, srcs.filter((s) => s.jobId === r.id));
-    const manual = t.site === "other";
+    const liManual = t.site === "linkedin" && !linkedinAutomation;
+    const manual = t.site === "other" || liManual;
     await db.insert(applications).values({
       jobId: r.id, site: t.site, boardKey: t.boardKey, targetUrl: t.url, status: manual ? "manual" : "queued", picked: !!opts.picked,
-      reason: manual ? "This site isn't supported yet; apply yourself" : null,
+      reason: liManual ? "LinkedIn automation is off; apply yourself" : manual ? "This site isn't supported yet; apply yourself" : null,
     }).onConflictDoNothing();
     if (manual) out.manual++; else out.queued++;
   }
@@ -42,7 +44,7 @@ export async function queueApplications(opts: { jobIds?: number[]; picked?: bool
 }
 
 /**
- * Sherif pressed Apply on a job: tailor it now if needed (any score), then queue it ahead of the app's own picks.
+ * Ryan pressed Apply on a job: tailor it now if needed (any score), then queue it ahead of the app's own picks.
  * Returns a plain-language error when it can't be applied to.
  */
 export async function pickJob(jobId: number): Promise<{ ok: true } | { error: string }> {
@@ -71,7 +73,7 @@ export async function pickJob(jobId: number): Promise<{ ok: true } | { error: st
 
 /**
  * Leases that outlived the extension (tab closed, crash). A fill goes back to the queue, counting as an attempt.
- * A submit never does: the form may already have been sent, so it waits for Sherif to check.
+ * A submit never does: the form may already have been sent, so it waits for Ryan to check.
  */
 async function reclaimStaleLeases(now: Date) {
   const stale = await db.select().from(applications)
@@ -132,11 +134,11 @@ export async function nextApplication(now: Date = new Date()): Promise<{ jobId: 
     if (atsToday >= cfg.caps.globalDaily) { reason = "Daily application cap reached"; return true; }
     return false;
   };
-  // Jobs Sherif skipped, listings that closed, jobs re-scored as not takeable, and jobs clearly too senior for him
+  // Jobs Ryan skipped, listings that closed, jobs re-scored as not takeable, and jobs clearly too senior for him
   // (unless he picked them himself) are never handed out.
   const live = (r: (typeof all)[number]) => r.jobStatus !== "filtered_out" && !r.closedAt && !paused.has(r.a.site) && r.s.canTake !== "not_possible"
     && (r.a.picked || r.s.level >= TOO_SENIOR_LEVEL);
-  // Jobs Sherif picked himself go first, then best composite.
+  // Jobs Ryan picked himself go first, then best composite.
   const best = (x: (typeof all)[number], y: (typeof all)[number]) =>
     Number(y.a.picked) - Number(x.a.picked) || composite(y.s, cfg.weights).score - composite(x.s, cfg.weights).score;
 
@@ -167,7 +169,7 @@ export async function approve(jobId: number): Promise<void> {
   if (!dryRun) await saveSetting("trustRemaining", Math.max(0, trustRemaining - 1));
 }
 
-/** "Fill again in Chrome": a job that needs Sherif goes back to the queue for a fresh fill. */
+/** "Fill again in Chrome": a job that needs Ryan goes back to the queue for a fresh fill. */
 export async function refill(jobId: number): Promise<void> {
   await db.update(applications).set({ status: "queued", approved: false, leaseAt: null, reason: null })
     .where(and(eq(applications.jobId, jobId), inArray(applications.status, ["needs_you", "ready_to_submit", "failed"])));

@@ -41,7 +41,7 @@ JF.adapter = {
       }
       const buttons = [...root.querySelectorAll("button")].filter(JF.visible);
       const label = (b) => `${b.innerText} ${b.getAttribute("aria-label") || ""}`;
-      // The last screen: stop here and hand over to Sherif.
+      // The last screen: stop here and hand over to Ryan.
       if (buttons.some((b) => /submit application/i.test(label(b)))) {
         return JF.done(jobId, { outcome: "stopped", status: "needs_you", reason: "LinkedIn: review and submit" }, true);
       }

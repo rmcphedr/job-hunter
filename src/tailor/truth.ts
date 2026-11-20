@@ -31,7 +31,7 @@ export function baseResume(p: BaseProfile): TailoredResume {
 const GENERIC = new Set(["api", "apis", "ui", "ux", "saas", "b2b", "b2c", "ci/cd", "rest", "sdk", "mvp", "kpi", "kpis", "aws", "llm", "llms", "ai", "ml", "ide", "url", "urls", "json", "http", "sql"]);
 // Words a headline may use beyond the candidate's real titles and skills. Deliberately excludes specialisms
 // (security, data, infrastructure, platform, ...) that would claim a role he never held.
-const HEADLINE_WORDS = new Set(["ai", "full-stack", "full", "stack", "product", "products", "founding", "engineer", "software", "developer", "llm", "applications", "agents", "agentic", "web", "and", "&", "-", "|", ",", "with", "for", "of"]);
+const HEADLINE_WORDS = new Set(["ai", "ml", "applied", "research", "researcher", "scientist", "full-stack", "full", "stack", "product", "products", "founding", "engineer", "software", "developer", "llm", "applications", "agents", "agentic", "web", "and", "&", "-", "|", ",", "with", "for", "of"]);
 const NUMBER_WORDS = /\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|hundred|hundreds|thousand|thousands|million|millions|billion|billions|dozen|dozens|double|doubled|triple|tripled|half|halved)\b/i;
 // After NFKC, only ASCII plus common typographic punctuation is allowed (blocks look-alike letters).
 const ALLOWED_CHARS = /^[\x20-\x7E–—‘’“”•]*$/;
@@ -185,9 +185,25 @@ export async function truthCheck(
   const baseList = Object.values(p.skills).flat();
   const extra = p.extraSkills ?? [];
   let extrasUsed = 0;
-  out.skills = out.skills.flatMap((cat) => {
+  // A renamed category ("Machine Learning" for "Machine Learning and Evaluation") keeps its items: each real skill
+  // moves back to the resume category that holds it, so a rewrite can't silently empty the Skills section.
+  const ownerOf = (it: string) => Object.keys(p.skills).find((c) => p.skills[c].some((b) => b.toLowerCase() === String(it).toLowerCase() || sameSkill(b, String(it))));
+  const regrouped: typeof out.skills = [];
+  const slot = (category: string) => {
+    let c = regrouped.find((x) => x.category === category);
+    if (!c) { c = { category, items: [] }; regrouped.push(c); }
+    return c;
+  };
+  for (const cat of out.skills) {
     const real = baseCats.get(String(cat.category).toLowerCase().trim());
-    if (!real) { issues.push({ where: "skills", problem: `category "${cat.category}" isn't on your resume`, action: "dropped" }); return []; }
+    if (real) { slot(real).items.push(...cat.items); continue; }
+    const moved = cat.items.map((it) => [it, ownerOf(it)] as const);
+    for (const [it, owner] of moved) if (owner) slot(owner).items.push(it);
+    issues.push({ where: "skills", problem: `category "${cat.category}" isn't on your resume`, action: moved.some(([, o]) => o) ? "reverted" : "dropped" });
+  }
+  for (const c of regrouped) c.items = c.items.filter((it, i, a) => a.findIndex((x) => x.toLowerCase() === it.toLowerCase()) === i);
+  out.skills = regrouped.flatMap((cat) => {
+    const real = cat.category;
     const items = cat.items.filter((it) => {
       // His own skills, in his spelling or the job's (Postgres for PostgreSQL), or ones the resume text already shows.
       const own = baseSkills.has(String(it).toLowerCase()) || baseList.some((b) => sameSkill(b, String(it)))

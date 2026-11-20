@@ -16,7 +16,7 @@ export async function lookupBank(label: string): Promise<string | null> {
   return row?.answer ?? null;
 }
 
-/** Saves a newly drafted answer for Sherif to review. Never overwrites a seeded or edited answer. */
+/** Saves a newly drafted answer for Ryan to review. Never overwrites a seeded or edited answer. */
 export async function saveDrafted(label: string, answer: string): Promise<void> {
   const key = normalizeQuestion(label);
   if (!key) return;

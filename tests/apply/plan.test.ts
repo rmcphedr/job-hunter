@@ -60,8 +60,15 @@ test("required field without answer stops", async () => {
   expect(p.reason).toContain("Security clearance level");
 });
 
+test("linkedin automation is off by default: nothing is filled", async () => {
+  const id = await mkJob({ url: "https://www.linkedin.com/jobs/view/123/" });
+  const p = await buildFillPlan(id, basics);
+  expect(p).toMatchObject({ fills: [], action: "stop", status: "needs_you", reason: "LinkedIn automation is off; apply yourself" });
+});
+
 test("linkedin never submits", async () => {
   const id = await mkJob({ url: "https://www.linkedin.com/jobs/view/123/" });
+  await saveSetting("linkedinAutomation", true);
   const p = await buildFillPlan(id, basics);
   expect(p).toMatchObject({ action: "stop", status: "needs_you", reason: "LinkedIn: review and submit" });
 });

@@ -2,7 +2,7 @@
 // It asks the local app for the next job, opens it in one background tab, injects the site adapter, relays the
 // adapter's API calls (the token never leaves this worker), and reports the outcome. All decisions live in the app.
 
-const API = "http://localhost:3100";
+const API = "http://localhost:3200";
 const MAX_NEEDS_YOU_TABS = 8;
 const JOB_TIMEOUT_MS = 6 * 60_000;
 const ADAPTERS = { greenhouse: "greenhouse.js", lever: "lever.js", ashby: "ashby.js", workable: "workable.js", linkedin: "linkedin.js" };
@@ -57,7 +57,7 @@ function formUrl(url, site) {
 async function openNeedsYouTabs() {
   const { needsYouTabs = [] } = await get("needsYouTabs");
   const open = [];
-  for (const id of needsYouTabs) { try { await chrome.tabs.get(id); open.push(id); } catch { /* closed by Sherif */ } }
+  for (const id of needsYouTabs) { try { await chrome.tabs.get(id); open.push(id); } catch { /* closed by Ryan */ } }
   await set({ needsYouTabs: open });
   return open;
 }
@@ -198,7 +198,7 @@ async function collectLinkedIn(searches, perSearch) {
   }
 }
 
-/** Reports the outcome, closes the tab unless Sherif needs it, and schedules the next job at human pace. */
+/** Reports the outcome, closes the tab unless Ryan needs it, and schedules the next job at human pace. */
 async function finish(jobId, report, keepOpen, tabGone = false) {
   const { active, needsYouTabs = [] } = await get(["active", "needsYouTabs"]);
   if (!active || active.jobId !== jobId) return; // already finished (e.g. confirmed by both scripts)

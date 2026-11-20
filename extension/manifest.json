@@ -11,7 +11,7 @@
     "debugger"
   ],
   "host_permissions": [
-    "http://localhost:3100/*",
+    "http://localhost:3200/*",
     "https://*.greenhouse.io/*",
     "https://jobs.lever.co/*",
     "https://jobs.eu.lever.co/*",

@@ -13,7 +13,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ jobId: s
   if (!t?.pdfPath) return new Response("No tailored resume for this job yet", { status: 404 });
   let pdf: Buffer;
   try {
-    pdf = await readFile(path.join(process.cwd(), "data", "out", String(id), "resume.pdf"));
+    pdf = await readFile(path.isAbsolute(t.pdfPath) ? t.pdfPath : path.join(process.cwd(), t.pdfPath));
   } catch {
     return new Response("No tailored resume for this job yet", { status: 404 });
   }

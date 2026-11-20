@@ -17,7 +17,7 @@ export async function GET(req: Request) {
   const cfg = await loadSettings();
   const [li] = await db.select().from(sites).where(eq(sites.site, "linkedin"));
   const last = cfg.linkedinCollectedAt ? +new Date(cfg.linkedinCollectedAt) : 0;
-  const due = !cfg.globalPause && !li?.paused && Date.now() - last > cfg.searchIntervalHours * 3600_000;
+  const due = cfg.linkedinAutomation && !cfg.globalPause && !li?.paused && Date.now() - last > cfg.searchIntervalHours * 3600_000;
   const searches = ROLES.map((r) => `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(r)}&f_TPR=r86400&sortBy=DD`);
   return NextResponse.json({ due, searches, perSearch: 10 });
 }

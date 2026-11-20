@@ -151,7 +151,7 @@ export const applications = pgTable("applications", {
   reason: text("reason"),
   fills: jsonb("fills"),
   approved: boolean("approved").notNull().default(false),
-  /** Sherif pressed Apply on this job himself: it goes ahead of the jobs the app picked. */
+  /** Ryan pressed Apply on this job himself: it goes ahead of the jobs the app picked. */
   picked: boolean("picked").notNull().default(false),
   leaseAt: ts("lease_at"),
   filledAt: ts("filled_at"),

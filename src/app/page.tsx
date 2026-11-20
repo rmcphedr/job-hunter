@@ -157,7 +157,7 @@ async function refillAction(formData: FormData) {
 
 const MANUAL_STATUSES = ["applied", "interviewing", "rejected", "offer"] as const;
 
-/** Statuses Sherif sets by hand: "I submitted it", then Interviewing / Rejected / Offer (spec 6.6). */
+/** Statuses Ryan sets by hand: "I submitted it", then Interviewing / Rejected / Offer (spec 6.6). */
 async function setStatusAction(formData: FormData) {
   "use server";
   const id = Number(formData.get("id"));

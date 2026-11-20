@@ -64,6 +64,7 @@ async function toggle(fd: FormData) {
   const on = fd.get("on") === "1";
   if (key === "globalPause") await saveSetting("globalPause", on);
   if (key === "dryRun") await saveSetting("dryRun", on);
+  if (key === "linkedinAutomation") await saveSetting("linkedinAutomation", on);
   if (key === "trust") await saveSetting("trustRemaining", 10);
   if (key === "token") await regenerateExtensionToken();
   redirect("/sites");
@@ -96,6 +97,10 @@ export default async function Sites({ searchParams }: { searchParams: Promise<Re
           <small>{cfg.dryRun
             ? <>The extension fills forms but never submits. Off means the extension really submits applications. {flip("dryRun", false, "Turn dry run off")}</>
             : <>The extension submits applications for real. {flip("dryRun", true, "Turn dry run on")}</>}</small></div>
+        <div className="field"><span>LinkedIn automation</span><b>{cfg.linkedinAutomation ? "On" : "Off"}</b>
+          <small>{cfg.linkedinAutomation
+            ? <>The extension collects LinkedIn searches and fills Easy Apply (never submits). LinkedIn&apos;s terms prohibit this. {flip("linkedinAutomation", false, "Turn LinkedIn automation off", true)}</>
+            : <>LinkedIn jobs go to Apply yourself and nothing is collected from LinkedIn (its terms prohibit automation). {flip("linkedinAutomation", true, "Turn on at my own risk")}</>}</small></div>
         <div className="field"><span>Trust period</span><b>{cfg.trustRemaining} approvals left</b>
           <small>Until then, every auto-submit waits in Ready to submit for your click. {flip("trust", true, "Restart trust period")}</small></div>
       </section>
