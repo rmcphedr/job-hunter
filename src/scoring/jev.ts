@@ -6,13 +6,13 @@ import type { DimensionScores, Feasibility, Scorer } from "./types";
 
 const questions = {
   scope: score(
-    "How much of this job (`job`) is the kind of work the candidate wants: building AI/LLM-powered products, founding-engineer work, or full-stack product engineering?",
+    "How much of this job (`job`) is the kind of work the candidate wants: applied ML / data science, AI or research scientist or engineer roles, computational biology or neuroscience, LLM/NLP/vision product work, MLOps, or AI automation and scientific consulting?",
     [
-      "No software engineering work, or software is incidental to the role",
-      "Software engineering, but narrow or far from product work (e.g. pure infrastructure, embedded, data pipelines only)",
-      "General software or web product engineering with little AI involvement",
-      "Full-stack product engineering with meaningful AI/LLM features, or an early-stage startup engineering role",
-      "Core AI/LLM product engineering, or a founding/first engineer role building the product",
+      "No ML, data science, research, or AI engineering work (or that work is incidental)",
+      "Adjacent quantitative or software work with little ML/AI or scientific research content (e.g. pure backend, general analytics without modeling)",
+      "Some ML, data, or research content mixed with a lot of unrelated work",
+      "Clear applied ML, data science, research engineer/scientist, or AI product role with meaningful modeling or scientific work",
+      "Core applied ML / research scientist / AI engineer role aligned with his targets (LLMs, multimodal, computational biology/neuroscience, evaluation, or AI automation)",
     ],
   ),
   company: score(
@@ -36,23 +36,23 @@ const questions = {
     ],
   ),
   level: score(
-    "How well does the seniority this job asks for match the candidate (`candidate`): about 2 years of professional experience including two founding-engineer roles?",
+    "How well does the seniority this job asks for match the candidate (`candidate`: about 8 years of relevant experience including a PhD in neuroscience, a Mila/McGill postdoc, and independent AI consulting — not a junior founding engineer)?",
     [
-      "Far off: needs many more years (senior/staff, 6+ years) or is an internship/entry-level role far below him",
-      "Somewhat too senior (asks for 5+ years) or clearly junior-only",
-      "Stretch but plausible (asks for 3–5 years) or a junior role he'd be over-qualified for",
-      "Good match: mid-level, or open to 2–4 years",
-      "Exact match: mid-level, founding/early engineer, or explicitly open to strong early-career engineers",
+      "Far off: staff/principal/director with 12+ years required, or an internship / new-grad role far below him",
+      "Somewhat too senior (asks for ~10–12 years or a staff bar he is unlikely to clear) or clearly junior-only",
+      "Stretch but plausible (asks for ~8–10 years, or a slightly junior applied role he would still do well in)",
+      "Good match: mid-to-senior applied scientist / ML engineer / research engineer open to PhD + postdoc backgrounds",
+      "Exact match: research or applied ML scientist / AI engineer pitched at PhD or postdoc level, or explicitly open to strong researcher–engineer hybrids with ~5–10 years",
     ],
   ),
   fit: score(
-    "How well does the candidate's real, shipped experience (`candidate.roles`, `candidate.projects`, `candidate.skills`) match what this job (`job.description`) requires?",
+    "How well does the candidate's real experience (`candidate.roles`, `candidate.projects`, `candidate.skills` — ML pipelines, fMRI/time-series, NLP/BERT, evaluation, agentic AI tooling, scientific collaboration) match what this job (`job.description`) requires?",
     [
       "Requires core skills he does not have at all",
       "Matches a few requirements but misses several core ones",
       "Matches about half of the core requirements",
-      "Matches most core requirements with directly relevant shipped work",
-      "His shipped work maps directly onto nearly every requirement",
+      "Matches most core requirements with directly relevant shipped or research work",
+      "His work maps directly onto nearly every requirement",
     ],
   ),
   canTake: choice(

@@ -31,7 +31,7 @@ const MODE: Record<Treatment["rewrite"], string> = {
 - Lead each bullet with what this job cares about, and use the job's own terms wherever they truthfully describe the same work (e.g. call the voice agent an "AI agent" for an agents role, or name TypeScript/Node.js when the source bullet or that role's stack includes them).
 - Keep the meaning, and keep every number exactly as written.
 - Put the most relevant bullets first and drop the least relevant ones.
-- Choose a headline that fits the job, using only titles the candidate actually holds (e.g. "Founding Engineer, AI Products").
+- Choose a headline that fits the job, using only titles the candidate actually holds (e.g. "Machine Learning Scientist", "Applied AI Developer", "Research Scientist").
 - Order skills by relevance.
 Example. Source: "Built backend services for asynchronous processing using Redis, job queues, and background jobs." For a job about reliable agent pipelines, write: "Built Redis-backed job queues and background workers for asynchronous processing, keeping long-running tasks off the request path."`,
   reorder: "Tailor lightly: reorder bullets and skills by relevance to the job, with only small wording changes to match the job's keywords. Keep the headline close to the original.",
@@ -58,7 +58,7 @@ export async function generateResume(job: JobRow, profile: BaseProfile, t: Treat
   if (!t.resumeModel) return base;
   const out = await chatJSON<Partial<TailoredResume>>({
     model: t.resumeModel, category: "tailoring", estimateUsd: t.rewrite === "full" ? 0.02 : 0.003,
-    system: `You tailor a software engineer's one-page resume to a specific job.\n${MODE[t.rewrite]}\n\n${RULES}\n
+    system: `You tailor a machine learning scientist / applied AI developer's one-page resume to a specific job.\n${MODE[t.rewrite]}\n\n${RULES}\n
 Return JSON: {"headline": string, "roles": [{"roleIdx": number, "bullets": [{"source": string, "text": string}]}], "projects": [{"source": string, "text": string}], "skills": [{"category": string, "items": string[]}], "includeQuote": boolean}`,
     user: JSON.stringify({ job: jobForPrompt(job), resume: profileForPrompt(profile) }),
   });
@@ -94,7 +94,7 @@ export async function generateExtras(job: JobRow, profile: BaseProfile, t: Treat
   if (!fields.length) return { gapReport: null, prep: null, coverLetter: null };
   const out = await chatJSON<{ gapReport?: GapItem[]; prep?: Prep; coverLetter?: string | null }>({
     model: t.extrasModel, category: "tailoring", estimateUsd: 0.003,
-    system: `You help a software engineer prepare for one job application. Use only facts from his resume; never invent experience.
+    system: `You help a machine learning scientist / applied AI developer prepare for one job application. Use only facts from his resume; never invent experience.
 Return JSON:
 {${fields.join(",\n").trimStart()}}`,
     user: JSON.stringify({ job: jobForPrompt(job), resume: profileForPrompt(profile) }),
