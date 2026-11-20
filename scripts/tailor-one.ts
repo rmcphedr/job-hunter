@@ -1,7 +1,6 @@
-// Usage: npx tsx scripts/tailor-one.ts <jobId> [--tier top|middle|bottom] [--model <id>] [--inject-fake] [--pdf] [--out <dir>]
+// Usage: npx tsx scripts/tailor-one.ts <jobId> [--format two_page|one_page] [--tier top|middle|bottom] [--model <id>] [--inject-fake] [--pdf] [--out <dir>]
 import { eq } from "drizzle-orm";
 import path from "node:path";
-import { readFileSync } from "node:fs";
 
 async function main() {
   const args = process.argv.slice(2);
@@ -18,14 +17,17 @@ async function main() {
 
   const [job] = await db.select().from(jobs).where(eq(jobs.id, id));
   if (!job) { console.log("no such job"); return closeDb(); }
-  const p = await loadProfile();
+  const { asResumeFormat, resumeBase, readBaseTex } = await import("../src/profile/format");
+  const { loadSettings } = await import("../src/config");
+  const fmt = resumeBase(asResumeFormat(opt("format") ?? (await loadSettings()).resumeFormat));
+  const p = { ...(await loadProfile(fmt.format)), targetPages: fmt.maxPages };
   const { resumeLlmConfig } = await import("../src/llm/resumeConfig");
   const llm = resumeLlmConfig();
   const t = pickTreatment((opt("tier") as "top" | "middle" | "bottom") ?? "top", 0);
   if (opt("model")) t.resumeModel = opt("model")!;
   if (llm.provider === "codex_cli" && !opt("model")) t.resumeModel = "codex_cli";
   const t0 = new Date();
-  console.log(`== #${id} ${job.title} @ ${job.companyName} | provider ${llm.provider} | tier ${t.tier} | ${t.resumeModel} | ${t.rewrite}`);
+  console.log(`== #${id} ${job.title} @ ${job.companyName} | ${fmt.label} base | provider ${llm.provider} | tier ${t.tier} | ${t.resumeModel} | ${t.rewrite}`);
   if (llm.provider === "codex_cli") {
     console.log("Note: this will use your ChatGPT/Codex subscription allowance.");
   }
@@ -51,11 +53,11 @@ async function main() {
   console.log("cover letter:", ex.coverLetter ? `${ex.coverLetter.split(/\s+/).length} words` : "none");
 
   if (flag("pdf")) {
-    const { fitOnePage } = await import("../src/tailor/latex");
+    const { fitPages } = await import("../src/tailor/latex");
     const out = opt("out") ?? path.join(".superpowers/tmp/tailor", String(id));
     try {
-      const f = await fitOnePage(r, p, readFileSync("resume.tex", "utf8"), out);
-      console.log("pdf:", f.pdfPath);
+      const f = await fitPages(r, p, readBaseTex(fmt.format), out, fmt.maxPages);
+      console.log(`pdf (${fmt.label}): ${f.pdfPath} | ${f.pages} page(s)`);
     } catch (e) { console.log("pdf error:", (e as Error).message); }
   }
   const rows = await db.select().from(spend).where(gte(spend.at, t0));

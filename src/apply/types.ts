@@ -9,7 +9,8 @@ export type FieldKind = "text" | "textarea" | "email" | "tel" | "url" | "number"
 /** One form field as the extension reads it from the page. */
 export type FormField = { id: string; label: string; kind: FieldKind; required: boolean; options?: string[] };
 
-export type FillSource = "profile" | "rule" | "bank" | "drafted" | "job";
+/** "estimate": a value the app had to guess (salary with no posted range); the job waits for your review. */
+export type FillSource = "profile" | "rule" | "bank" | "drafted" | "job" | "estimate";
 
 /** What to put in one field. `file` fields are uploaded by the extension from /api/ext/file. */
 export type Fill = { id: string; label: string; value: string | string[] | boolean | null; file?: "resume" | "cover"; source: FillSource };

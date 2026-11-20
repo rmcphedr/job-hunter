@@ -36,7 +36,7 @@ Keys in `.env`:
 
 - `OPENROUTER_API_KEY`: optional for resume rewrites when `RESUME_LLM_PROVIDER=openrouter`; still used for Hacker News extraction (`OPENROUTER_CHEAP_MODEL`) and other helpers.
 - `RESUME_LLM_PROVIDER`: `codex_cli` (default) or `openrouter`. Codex uses your ChatGPT subscription via the local CLI — see [docs/codex-resume.md](docs/codex-resume.md).
-- `TYPESAFE_API_KEY`: Jev scoring. Without it jobs are found but not scored.
+- `JEV_MODEL`: scoring model on OpenRouter, default `typesafe/jev-router` (TypeSafe's Jev Router; only `OPENROUTER_API_KEY` is needed, no TypeSafe account). Set `SCORING_PROVIDER=typesafe` plus `TYPESAFE_API_KEY` to call TypeSafe directly instead.
 - `JEV_USD_PER_MTOK_INPUT`, `JEV_USD_PER_MTOK_OUTPUT`: Jev prices, used for the spend meter.
 
 Keys stay in `.env` (git-ignored) and never reach the extension.
@@ -63,14 +63,15 @@ npm run worker   # searches now, then every 4 hours (Settings → "Search every"
 - **Nothing invented.** Every bullet must map to one of your real bullets. New numbers, names or tools revert to your original wording, and a second model checks for overstated claims. The dashboard shows anything that was reverted.
 - **The job's spelling of your real skills** is allowed (Postgres for PostgreSQL), never a different product.
 - **Extra skills** (Settings): skills you've really used that don't fit on your one-page resume. Up to 4 a job asks for can be added to a resume.
-- **Always one page.** If a resume overflows, extra skills go first, then projects, then bullets from your longest role.
+- **Within the base's page limit.** Two pages for `resume.tex`, one for `resume-1page.tex` (Settings → Resume format). Only if a resume overflows its limit: extra skills go first, then projects, then bullets from your longest role. Your Summary and contact line are kept verbatim.
 - Each job shows how many of the ad's tech terms your resume covers, and which are missing.
 - Cover letters only when the listing asks for one. A gap report and interview prep are generated on demand.
 - Files go to `data/out/<jobId>/` (git-ignored). Free models are never used for tailoring: your resume is personal data.
 
 **Applying.** The local app decides everything (which job is next, what goes in each field, whether to submit); the extension only reads and fills the page.
 
-- Fields are answered from your profile, then fixed rules (salary, sponsorship, work authorization, EEO), then your saved answers, then one model call for anything new. New answers are saved for you to review under **Saved answers**. A question your facts can't answer is never guessed: the job waits for you.
+- Salary: 90% of the posted range's midpoint. No range posted: optional salary fields stay empty; a required one gets a conservative **CAD 90,000–110,000** estimate, marked "Estimate", and the job waits for your Approve even after the trust period.
+- Fields are answered from your profile, then fixed rules (salary, sponsorship, work authorization, citizenship, EEO), then your saved answers, then one model call for anything new. New answers are saved for you to review under **Saved answers**. A question your facts can't answer is never guessed: the job waits for you.
 - **Dry run is on by default**: forms are filled but never submitted. Turn it off in **Sites & caps**.
 - **Trust period:** the first 10 applications that would be submitted wait for you to press **Approve**.
 - **LinkedIn is off by default, and fill-only when on.** The extension stops on Easy Apply's review screen and leaves the tab for you.
@@ -99,7 +100,7 @@ The app reads your resume from `resume.tex`, but some facts about me are written
 
 | What | Where |
 |---|---|
-| Your resume (one page, same LaTeX layout) | `resume.tex`. The parser in `src/profile/parseLatex.ts` expects its sections; check the result with `npx tsx scripts/print-profile.ts`. |
+| Your resume (same LaTeX layout) | `resume.tex` (two-page base, default) and `resume-1page.tex` (one-page base); pick one under Settings → Resume format. Tailoring keeps each within its own page limit. The parser in `src/profile/parseLatex.ts` expects its sections; check the result with `npx tsx scripts/print-profile.ts`. |
 | Years of experience, citizenship, location | `src/profile/parseLatex.ts` (`facts`) and `src/profile/types.ts` |
 | Where you can work and relocate to | `src/scoring/state.ts` (`citizenship`, `relocation`) and the `canTake` question in `src/scoring/jev.ts` |
 | Work authorization and sponsorship answers | `needsSponsorship` and `authorized` in `src/apply/rules.ts`, plus the hints in `src/app/answers/page.tsx` |

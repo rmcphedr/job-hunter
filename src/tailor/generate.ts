@@ -115,7 +115,7 @@ export async function generateResume(
 
   const out = await chatJSON<Partial<TailoredResume>>({
     model: t.resumeModel, category: "tailoring", estimateUsd: t.rewrite === "full" ? 0.02 : 0.003,
-    system: `You tailor a software engineer's one-page resume to a specific job.\n${MODE[t.rewrite]}\n\n${RULES}\n
+    system: `You tailor the candidate's resume (at most ${profile.targetPages ?? 1} page${(profile.targetPages ?? 1) === 1 ? "" : "s"}) to a specific job.\n${MODE[t.rewrite]}\n\n${RULES}\n
 Return JSON: {"headline": string, "roles": [{"roleIdx": number, "bullets": [{"source": string, "text": string}]}], "projects": [{"source": string, "text": string}], "skills": [{"category": string, "items": string[]}], "includeQuote": boolean}`,
     user: JSON.stringify({ job: jobForPrompt(job), resume: profileForPrompt(profile) }),
   });

@@ -1,0 +1,83 @@
+\documentclass[letterpaper,10pt]{article}
+
+% One-page base (from Ryan's one-page PDF). Same layout as resume.tex.
+% Compiles with pdfLaTeX, including on Overleaf's default settings.
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage[scaled=0.92]{helvet}
+\else
+  \usepackage{fontspec}
+  \setsansfont{texgyreheros}[Extension=.otf, UprightFont=*-regular, BoldFont=*-bold, ItalicFont=*-italic, BoldItalicFont=*-bolditalic, Scale=0.92]
+\fi
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage[letterpaper,margin=0.5in]{geometry}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage[hidelinks]{hyperref}
+
+% Makes the PDF text map cleanly to Unicode for ATS parsers.
+\ifdefined\pdfgentounicode
+  \input{glyphtounicode}
+  \pdfgentounicode=1
+\fi
+
+\pagestyle{empty}
+% No line-end hyphenation, so keywords stay whole for ATS parsers.
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+\emergencystretch=2em
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+\setlist[itemize]{nosep,leftmargin=1.3em,itemsep=0.5pt,topsep=1pt}
+\titleformat{\section}{\large\bfseries}{}{0em}{}[\titlerule]
+\titlespacing{\section}{0pt}{6pt}{3pt}
+
+\newcommand{\role}[3]{\textbf{#1} \hfill #3\par\textit{#2}\par}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\textbf{Ryan McPhedrain}}\par\vspace{4pt}
+{\normalsize Neuroscientist and Postdoctoral Researcher}\par\vspace{3pt}
+\small
+\href{mailto:rmcphedr@gmail.com}{rmcphedr@gmail.com} | 236-512-2798 | \href{https://linkedin.com/in/ryanmcphedrain}{linkedin.com/in/ryanmcphedrain} | \href{https://github.com/rmcphedr}{github.com/rmcphedr}
+\end{center}
+
+\section{Summary}
+Neuroscientist and Mila postdoctoral researcher with 9+ years designing hypothesis-driven studies and analytical pipelines for complex biological data. Combines electrophysiology, two-photon imaging, and molecular neuroscience with computational neuroscience, machine learning, and multimodal integration. Experienced coordinating rigorous research, mentoring trainees, and translating scientific questions into reproducible analyses and publications.
+
+\section{Skills}
+\textbf{Experimental Neuroscience:} Patch-Clamp Electrophysiology, Two-Photon and Fluorescence Imaging, Synaptic Development and Neural Circuits, Molecular Biology, Cell Culture\par\vspace{2pt}
+\textbf{Computational Neuroscience and AI:} Python (NumPy, Pandas, scikit-learn, PyTorch, MNE, Nilearn), Statistical Modeling, Machine Learning, Multivariate Analysis (CCA, PLS), Multimodal Integration\par\vspace{2pt}
+\textbf{Scientific Leadership:} Experimental Design, Research Strategy, Scientific Writing and Grant Preparation, Cross-Disciplinary Collaboration, Mentorship
+
+\section{Experience}
+\role{Postdoctoral Researcher}{Mila, Montreal, QC}{2024 -- Present}
+\begin{itemize}
+    \item Designed reproducible Python pipelines to evaluate competing fMRI denoising and statistical strategies across large, multi-study datasets, supporting quality control, hypothesis testing, and figures for research published in Nature Medicine.
+    \item Coordinated neuroscientists, machine-learning researchers, statisticians, and international collaborators across 3 continents to harmonize 13 studies, 300+ participants, and 500+ scans, enabling a cross-study analysis of psychedelic effects on brain functional connectivity.
+    \item Developed multimodal analyses integrating rodent transcriptomics with longitudinal human neuroimaging to investigate conserved relationships between spatial gene expression and brain activity.
+    \item Applied machine learning and BERT-based semantic analysis to complex behavioral data; contributed to manuscripts and grant proposals and mentored graduate trainees in statistics, programming, and scientific communication.
+\end{itemize}
+\vspace{3pt}
+
+\role{Research Consultant (Internship)}{The Decision Lab, Montreal, QC}{2023 (4 months)}
+\begin{itemize}
+    \item Built an interactive NLP application to analyze demographic differences in financial attitudes, translating complex behavioral data into clear outputs for multidisciplinary stakeholders.
+    \item Used PCA and decision trees to identify behavioral subgroups in a smoking-cessation program and inform personalized interventions under project constraints.
+\end{itemize}
+\vspace{3pt}
+
+\role{Graduate Researcher}{McGill University, Montreal, QC}{2016 -- 2023}
+\begin{itemize}
+    \item Designed and executed hypothesis-driven research on synaptic development and neural-circuit formation using in vivo two-photon imaging, ex vivo patch-clamp electrophysiology, CRISPR-based methods, molecular biology, and statistical analysis.
+    \item Developed reproducible Python image-analysis tooling, authored peer-reviewed research, presented at scientific conferences, and trained graduate researchers in experimental methods and analysis.
+\end{itemize}
+
+\section{Education}
+\role{PhD in Neuroscience (4.0 GPA)}{McGill University, Montreal, QC}{2016 -- 2023}
+\role{BSc (Honours) in Molecular Biology \& Biochemistry (3.93 GPA)}{Simon Fraser University, Burnaby, BC}{2010 -- 2015}
+
+\end{document}

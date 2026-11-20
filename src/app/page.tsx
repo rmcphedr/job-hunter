@@ -170,7 +170,7 @@ async function setStatusAction(formData: FormData) {
   revalidatePath("/");
 }
 
-const SOURCE_LABEL: Record<Fill["source"], string> = { profile: "Profile", rule: "Rule", bank: "Bank", drafted: "Drafted", job: "Job" };
+const SOURCE_LABEL: Record<Fill["source"], string> = { profile: "Profile", rule: "Rule", bank: "Bank", drafted: "Drafted", job: "Job", estimate: "Estimate: check it" };
 
 const TABS = [
   { key: "resume", label: "Resume" }, { key: "cover", label: "Cover letter" }, { key: "gaps", label: "Gaps" },
@@ -446,7 +446,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<SP>
                   <>
                     <div className="pane-tools">
                       <Link scroll={false} href={href(sp, { changes: showChanges ? undefined : "1" })}>{showChanges ? "Show the PDF" : "Show changes from your base resume"}</Link>
-                      <span>One page, your LaTeX layout</span>
+                      <span>{cfg.resumeFormat === "one_page" ? "One page" : "Up to two pages"}, your LaTeX layout</span>
                     </div>
                     {showChanges ? (
                       <div className="textpane">
@@ -520,7 +520,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<SP>
                   {fills.map((f) => (
                     <div className="gap" key={f.id}>
                       <span className="need">{f.label}</span>
-                      {f.source === "drafted" ? <Link className="pill hi" href="/answers?new=1">{SOURCE_LABEL[f.source]}</Link> : <span className="pill lo">{SOURCE_LABEL[f.source]}</span>}
+                      {f.source === "drafted" ? <Link className="pill hi" href="/answers?new=1">{SOURCE_LABEL[f.source]}</Link> : <span className={`pill ${f.source === "estimate" ? "warn" : "lo"}`}>{SOURCE_LABEL[f.source]}</span>}
                       <span className="fix">{f.file ? (f.file === "resume" ? "Tailored resume PDF" : "Cover letter PDF") : Array.isArray(f.value) ? f.value.join(", ") : String(f.value)}</span>
                     </div>
                   ))}

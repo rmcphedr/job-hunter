@@ -1,4 +1,5 @@
 import { and, asc, eq, lt, sql } from "drizzle-orm";
+import { scoringConfigured } from "../scoring/jev";
 import pLimit from "p-limit";
 import { db } from "../db/client";
 import { companies, runs } from "../db/schema";
@@ -79,12 +80,12 @@ export async function runSearchCycle(opts: { runId?: number; skipSearch?: boolea
       s.harvested = await addCompanies(harvested.map((h) => ({ ...h, name: h.slug, origin: "harvested" as const })));
     }
 
-    if (process.env.TYPESAFE_API_KEY) {
+    if (scoringConfigured()) {
       const r = await scorePending();
       s.scored = r.scored; s.filtered = r.filtered; s.scoreFailed = r.failed; s.stoppedForBudget = r.stoppedForBudget;
-      if (r.stoppedForErrors) err("scoring", "stopped after 3 failures in a row (check TYPESAFE_API_KEY or TypeSafe status); unscored jobs will retry next search");
+      if (r.stoppedForErrors) err("scoring", "stopped after 3 failures in a row (check OPENROUTER_API_KEY and JEV_MODEL); unscored jobs will retry next search");
     } else {
-      err("scoring", "TYPESAFE_API_KEY not set; scoring skipped");
+      err("scoring", "OPENROUTER_API_KEY not set (or TYPESAFE_API_KEY with SCORING_PROVIDER=typesafe); scoring skipped");
     }
     if (process.env.OPENROUTER_API_KEY) {
       try {

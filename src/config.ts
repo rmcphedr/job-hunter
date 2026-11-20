@@ -14,7 +14,9 @@ export const config = {
   dryRun: true,
   /** LinkedIn's terms prohibit automation. Off: no LinkedIn collection, and LinkedIn-only jobs are "Apply yourself". */
   linkedinAutomation: false,
-  /** Skills Ryan has really used that aren't on his one-page resume; tailoring may add up to 4 a job asks for. */
+  /** Master resume for tailoring: "two_page" (resume.tex, default) or "one_page" (resume-1page.tex). */
+  resumeFormat: "two_page" as "two_page" | "one_page",
+  /** Skills Ryan has really used that aren't on his resume; tailoring may add up to 4 a job asks for. */
   extraSkills: [] as string[],
   globalPause: false,
   caps: { linkedinDaily: 15, perBoardDaily: 3, globalDaily: 60, perCompany30d: 2 },

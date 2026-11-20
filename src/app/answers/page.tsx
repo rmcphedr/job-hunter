@@ -79,7 +79,7 @@ export default async function Answers({ searchParams }: { searchParams: Promise<
             <option value="under_mid">10% under the midpoint</option>
             <option value="under_min">10% under the bottom</option>
           </select>
-          <small>In the listing&apos;s own currency and period. No salary posted and the form asks: the job waits in Needs you. <button className="btn" type="submit">Save</button></small>
+          <small>In the listing&apos;s own currency and period. No salary posted: optional salary fields stay empty; a required one gets a CAD 90,000–110,000 estimate and the job waits for your Approve. <button className="btn" type="submit">Save</button></small>
         </form>
         <div className="field"><span>Visa sponsorship</span><b>Yes or No</b><small>No for jobs in Canada and remote roles you can do from Canada; Yes for on-site or hybrid jobs outside Canada.</small></div>
         <div className="field"><span>Work authorization</span><b>Canada only</b><small>&quot;Authorized to work in Canada?&quot; is Yes; the US/UK/... is answered No.</small></div>

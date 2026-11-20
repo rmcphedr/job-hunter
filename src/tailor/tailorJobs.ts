@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import { and, eq, gte, isNull, lt, ne, or, sql } from "drizzle-orm";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
@@ -14,7 +13,8 @@ import { resumeLlmConfig } from "../llm/resumeConfig";
 import { assignTiers, pickTreatment, estimateUsd } from "./tiers";
 import { consumeResumeMeta, generateResume, generateExtras, wantsCoverLetter } from "./generate";
 import { truthCheck } from "./truth";
-import { fitOnePage } from "./latex";
+import { fitPages } from "./latex";
+import { asResumeFormat, readBaseTex, resumeBase } from "../profile/format";
 import { writeDocx } from "./docx";
 import { diffAgainstBase } from "./diff";
 import { jobOutDir } from "./artifacts";
@@ -90,8 +90,9 @@ export async function tailorPending(opts: {
     return result;
   }
 
-  const profile = { ...(await loadProfile()), extraSkills: cfg.extraSkills };
-  const baseTex = readFileSync(llm.templatePath, "utf8");
+  const fmt = resumeBase(asResumeFormat(cfg.resumeFormat));
+  const profile = { ...(await loadProfile(fmt.format)), extraSkills: cfg.extraSkills, targetPages: fmt.maxPages };
+  const baseTex = readBaseTex(fmt.format);
   let consecutiveErrors = 0;
 
   for (const { job, attempts } of eligible) {
@@ -137,7 +138,7 @@ export async function tailorPending(opts: {
       let fit: { resume: typeof checked.resume; pdfPath: string };
       try {
         const outDir = jobOutDir(job.id);
-        fit = await fitOnePage(checked.resume, profile, baseTex, outDir);
+        fit = await fitPages(checked.resume, profile, baseTex, outDir, fmt.maxPages);
       } catch (e) {
         await save({
           resume: checked.resume, issues: checked.issues, error: (e as Error).message, pdfPath: null,

@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import { eq, gte, inArray, sql } from "drizzle-orm";
 import { db } from "../db/client";
 import { jobs, jobScores, spend, tailorings } from "../db/schema";
@@ -11,7 +10,8 @@ import { resumeLlmConfig } from "../llm/resumeConfig";
 import { pickTreatment, estimateUsd } from "./tiers";
 import { consumeResumeMeta, generateExtras, generateResume, wantsCoverLetter } from "./generate";
 import { truthCheck } from "./truth";
-import { fitOnePage } from "./latex";
+import { fitPages } from "./latex";
+import { asResumeFormat, readBaseTex, resumeBase } from "../profile/format";
 import { writeDocx } from "./docx";
 import { diffAgainstBase } from "./diff";
 import { archiveCurrentVersion, clearCurrentArtifacts, jobOutDir } from "./artifacts";
@@ -141,8 +141,9 @@ export async function tailorOneJob(jobId: number, opts: {
 
   try {
     await clearCurrentArtifacts(jobId);
-    const profile = { ...(await loadProfile()), extraSkills: cfg.extraSkills };
-    const baseTex = readFileSync(llm.templatePath, "utf8");
+    const fmt = resumeBase(asResumeFormat(cfg.resumeFormat));
+    const profile = { ...(await loadProfile(fmt.format)), extraSkills: cfg.extraSkills, targetPages: fmt.maxPages };
+    const baseTex = readBaseTex(fmt.format);
 
     const draft = await generateResume(row.job, profile, treatment, {
       signal: controller.signal,
@@ -161,7 +162,7 @@ export async function tailorOneJob(jobId: number, opts: {
     );
 
     const outDir = jobOutDir(jobId);
-    const fit = await fitOnePage(checked.resume, profile, baseTex, outDir);
+    const fit = await fitPages(checked.resume, profile, baseTex, outDir, fmt.maxPages);
     let docxPath: string | null = null;
     try {
       docxPath = await writeDocx(fit.resume, profile, outDir);

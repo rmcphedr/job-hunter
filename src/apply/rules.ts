@@ -4,7 +4,7 @@ import type { Fill, FormField } from "./types";
 
 export type Kind =
   | "first_name" | "last_name" | "full_name" | "email" | "phone" | "linkedin" | "github" | "website" | "location"
-  | "current_company" | "years_experience" | "salary" | "sponsorship" | "work_auth" | "eeo"
+  | "current_company" | "years_experience" | "salary" | "sponsorship" | "work_auth" | "citizenship" | "eeo"
   | "resume_file" | "cover_file" | "cover_text" | "why_us" | "other";
 
 export type RuleCtx = { profile: BaseProfile; job: JobRow; canTake: Feasibility; salaryRule: "under_mid" | "under_min" };
@@ -13,6 +13,7 @@ const KINDS: [RegExp, Kind][] = [
   [/cover letter/, "cover_text"],
   [/\b(gender|race|racial|ethnicity|ethnic|veteran|disability|disabled|hispanic|latino|latinx|sexual orientation|transgender)\b/, "eeo"],
   [/sponsor/, "sponsorship"],
+  [/citizen(ship)?\b|nationality/, "citizenship"],
   [/authori[sz]ed to work|work authori[sz]ation|eligible to work|right to work|legally (able|permitted) to work/, "work_auth"],
   [/salary|compensation|pay expectation|expected pay|desired pay|pay range|rate expectation|expected rate/, "salary"],
   [/why (do you want|are you interested|would you like|us\b|this (role|company|position|team))|what (excites|interests|draws|attracts) you|interest(ed)? in (joining|working)/, "why_us"],
@@ -64,9 +65,25 @@ function optionRange(o: string): [number, number] | null {
 const ROUND = { year: 1000, month: 100, hour: 1 } as const;
 const PERIOD = { year: "year", month: "month", hour: "hour" } as const;
 
+/** Ryan's conservative fallback when a form requires salary and the listing posts none (flagged for review, never assumed silently). */
+export const SALARY_ESTIMATE = { min: 90_000, max: 110_000, currency: "CAD" } as const;
+export const SALARY_ESTIMATE_LABEL = `CAD ${SALARY_ESTIMATE.min.toLocaleString("en-US")}–${SALARY_ESTIMATE.max.toLocaleString("en-US")} per year`;
+
+function estimateFill(f: FormField): Fill | null {
+  const mid = (SALARY_ESTIMATE.min + SALARY_ESTIMATE.max) / 2;
+  let value: string | null;
+  if (f.kind === "number") value = String(mid);
+  else if (f.options?.length) {
+    const ranged = f.options.map((o) => ({ o, r: optionRange(o) })).filter((x) => x.r);
+    value = (ranged.find((x) => mid >= x.r![0] && mid <= x.r![1]) ?? ranged.find((x) => x.r![0] >= mid))?.o ?? null;
+  } else value = `${SALARY_ESTIMATE.min.toLocaleString("en-US")}–${SALARY_ESTIMATE.max.toLocaleString("en-US")} ${SALARY_ESTIMATE.currency} per year`;
+  return value == null ? null : { id: f.id, label: f.label, value, source: "estimate" };
+}
+
 function salaryFill(f: FormField, c: RuleCtx): Fill | "no_salary" | null {
   const { salaryMin: min, salaryMax: max, salaryCurrency: cur, salaryPeriod: period } = c.job;
-  if ((min == null && max == null) || !cur || !period) return "no_salary";
+  // No posted range: leave optional fields empty; a required one gets the flagged estimate.
+  if ((min == null && max == null) || !cur || !period) return f.required ? (estimateFill(f) ?? "no_salary") : "no_salary";
   const base = c.salaryRule === "under_min" ? (min ?? max!) : min != null && max != null ? (min + max) / 2 : (min ?? max!);
   const target = Math.round((base * 0.9) / ROUND[period]) * ROUND[period];
   let value: string | null;
@@ -89,6 +106,17 @@ function needsSponsorship(c: RuleCtx): boolean {
 
 const COUNTRY_WORDS = /\b(united states|u\.s\.a?|usa|america|united kingdom|uk|britain|england|canada|germany|france|netherlands|spain|ireland|european union|eu|europe|uae|united arab emirates|saudi|qatar|australia|singapore|india|israel)\b/i;
 
+/** Ryan is a Canadian citizen: "Are you a Canadian citizen?" is Yes, another country's citizenship is No, free text is "Canadian". */
+function citizenshipFill(f: FormField, p: BaseProfile): string | null {
+  const canadian = /canad/i.test(p.facts.citizenship);
+  if (!canadian) return null;
+  const l = f.label;
+  const yesNoQ = /^(are|is) you|^do you (hold|have)/i.test(l.trim()) || (f.options?.length && f.options.some((o) => /^\s*(yes|no)\b/i.test(o)));
+  if (yesNoQ) return /canad/i.test(l) ? yesNo(f, true) : COUNTRY_WORDS.test(l) || /\bu\.s\.|\b(american|british|european)\b/i.test(l) ? yesNo(f, false) : null;
+  if (f.options?.length) return f.options.find((o) => /canad/i.test(o)) ?? null;
+  return "Canadian";
+}
+
 /** Ryan is authorized to work in Canada only (job-search-agent config/profile.yml: work_authorization: Canada). */
 function authorized(f: FormField, c: RuleCtx): boolean {
   const l = f.label;
@@ -101,7 +129,7 @@ const DECLINE = /decline|prefer not|don't wish|do not wish|not to (say|answer|di
 
 /**
  * Answers a field from the profile or a fixed rule. Returns null when no rule applies (the bank or a drafted
- * answer may still), and "no_salary" when the form asks for salary but the listing posts none.
+ * answer may still), and "no_salary" when an optional salary field should stay empty (no range posted, nothing assumed).
  */
 export function answerByRule(f: FormField, c: RuleCtx): Fill | "no_salary" | null {
   const p = c.profile;
@@ -129,6 +157,7 @@ export function answerByRule(f: FormField, c: RuleCtx): Fill | "no_salary" | nul
     case "salary": return salaryFill(f, c);
     case "sponsorship": return fill(yesNo(f, needsSponsorship(c)), "rule");
     case "work_auth": return fill(yesNo(f, authorized(f, c)), "rule");
+    case "citizenship": return fill(citizenshipFill(f, p), "rule");
     case "eeo": return fill(f.options?.find((o) => DECLINE.test(o)) ?? null, "rule");
     default: return null;
   }

@@ -18,7 +18,7 @@ export function buildScoringState(job: JobRow, p: BaseProfile) {
     },
     candidate: {
       headline: p.headline,
-      citizenship: "Lives in Montreal, QC, Canada and is authorized to work in Canada; no work authorization elsewhere is on record",
+      citizenship: `${p.facts.citizenship}, lives in ${p.facts.location}; authorized to work in Canada, no work authorization elsewhere is on record`,
       relocation: "Prefers Montreal, then Vancouver; willing to relocate anywhere in Canada (Toronto/Waterloo acceptable). Remote, hybrid or on-site in Montreal; remote preferred elsewhere. US remote only where the employer supports Canadian hiring. Strong roles outside Canada only with employer visa sponsorship or relocation support",
       years_of_professional_experience: p.facts.yearsExperience,
       roles: p.roles.map((r) => ({ title: r.title, org: r.org, dates: r.dates, bullets: r.bullets })),

@@ -33,10 +33,21 @@ const llm = (answers: Record<string, string | null>) => vi.spyOn(globalThis, "fe
   choices: [{ message: { content: JSON.stringify({ answers }) } }], usage: { prompt_tokens: 10, completion_tokens: 5, cost: 0.0005 },
 }), { status: 200 }));
 
-test("no salary posted stops even when everything else is known", async () => {
+test("no salary posted + required salary: flagged CAD 90-110k estimate waits for approval", async () => {
   const id = await mkJob({ salary: false });
   const p = await buildFillPlan(id, [...basics, f("sal", "Expected salary")]);
-  expect(p).toMatchObject({ action: "stop", status: "needs_you", reason: "No salary posted" });
+  expect(p).toMatchObject({ action: "stop", status: "ready_to_submit" });
+  expect(p.reason).toMatch(/estimate.*CAD 90,000–110,000/);
+  expect(p.fills.find((x) => x.id === "sal")).toMatchObject({ value: "90,000–110,000 CAD per year", source: "estimate" });
+});
+
+test("no salary posted + optional salary: left empty, nothing assumed", async () => {
+  const id = await mkJob({ salary: false });
+  const spy = llm({ sal: "120000" });
+  const p = await buildFillPlan(id, [...basics, f("sal", "Expected salary", { required: false })]);
+  expect(p.fills.find((x) => x.id === "sal")).toBeUndefined();
+  expect(p.reason ?? "").not.toMatch(/estimate/);
+  spy.mockRestore();
 });
 
 test("all known on an ATS with trust done and dry run off submits", async () => {

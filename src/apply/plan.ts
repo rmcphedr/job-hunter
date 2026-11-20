@@ -6,7 +6,7 @@ import { loadProfile } from "../profile/load";
 import { chatJSON } from "../llm/openrouter";
 import { generateExtras } from "../tailor/generate";
 import { pickTreatment, TOP_MODEL, MID_MODEL } from "../tailor/tiers";
-import { answerByRule, classify } from "./rules";
+import { answerByRule, classify, SALARY_ESTIMATE_LABEL } from "./rules";
 import { lookupBank, saveDrafted } from "./bank";
 import type { Fill, FillPlan, FormField } from "./types";
 
@@ -58,7 +58,7 @@ export async function buildFillPlan(jobId: number, fields: FormField[]): Promise
   for (const f of fields) {
     const kind = classify(f);
     const r = answerByRule(f, ctx);
-    if (r === "no_salary") { noSalary = true; continue; }
+    if (r === "no_salary") { noSalary = true; continue; } // optional salary field, no range posted: left empty
     if (r) {
       if (r.file === "cover" && !(await ensureCover())) continue;
       fills.set(f.id, r); continue;
@@ -104,11 +104,15 @@ export async function buildFillPlan(jobId: number, fields: FormField[]): Promise
   const [siteRow] = await db.select().from(sites).where(eq(sites.site, a.site));
 
   let plan: FillPlan;
-  if (noSalary) plan = { fills: list, action: "stop", status: "needs_you", reason: "No salary posted" };
+  const estimated = list.some((x) => x.source === "estimate");
+  const unfilledSalary = noSalary && fields.some((f) => f.required && classify(f) === "salary" && !fills.has(f.id));
+  if (unfilledSalary) plan = { fills: list, action: "stop", status: "needs_you", reason: "No salary posted and the estimate doesn't fit this field" };
   else if (missing) plan = { fills: list, action: "stop", status: "needs_you", reason: `Unknown required field: ${missing.label}` };
   else if (a.site === "linkedin" && !cfg.linkedinAutomation) plan = { fills: [], action: "stop", status: "needs_you", reason: "LinkedIn automation is off; apply yourself" };
   else if (a.site === "linkedin") plan = { fills: list, action: "stop", status: "needs_you", reason: "LinkedIn: review and submit" };
   else if (siteRow && !siteRow.autoSubmit) plan = { fills: list, action: "stop", status: "needs_you", reason: "Auto-submit is off for this site" };
+  // A guessed salary always waits for your Approve, even after the trust period.
+  else if (estimated && !a.approved) plan = { fills: list, action: "stop", status: "ready_to_submit", reason: `Salary is an estimate (${SALARY_ESTIMATE_LABEL}, no range posted): check it before approving` };
   else if (cfg.trustRemaining > 0 && !a.approved) plan = { fills: list, action: "stop", status: "ready_to_submit", reason: null };
   // An approved job in dry run goes to Needs you, not back to Ready: otherwise it would be handed out again forever.
   else if (cfg.dryRun) plan = { fills: list, action: "stop", status: a.approved ? "needs_you" : "ready_to_submit", reason: "Dry run: filled, not submitted" };

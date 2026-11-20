@@ -8,7 +8,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ jobId: s
   const { jobId } = await params;
   const id = Number(jobId);
   if (!Number.isInteger(id) || id <= 0) return new Response("Bad job id", { status: 400 });
-  // Only serve a PDF the tailoring step finished (a failed one-page fit can leave a 2-page file behind).
+  // Only serve a PDF the tailoring step finished (a failed page fit can leave an over-long file behind).
   const [t] = await db.select({ pdfPath: tailorings.pdfPath }).from(tailorings).where(eq(tailorings.jobId, id));
   if (!t?.pdfPath) return new Response("No tailored resume for this job yet", { status: 404 });
   let pdf: Buffer;

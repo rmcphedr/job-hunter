@@ -188,6 +188,7 @@ export async function generateResumeViaCodex(
 ): Promise<CodexTailorResult> {
   const { workspace, schemaPath } = await prepareCodexWorkspace(job, profile, {
     extraSkills: opts.extraSkills ?? profile.extraSkills ?? [],
+    targetPages: profile.targetPages,
   });
   const outputPath = path.join(workspace, "codex-output.json");
   const exec = await execCodex({

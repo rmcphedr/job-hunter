@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { loadSettings, saveSetting, type Weights } from "@/config";
 import { loadProfile, saveProfile, parseResumeFile } from "@/profile/load";
 import type { BaseProfile } from "@/profile/types";
+import { asResumeFormat } from "@/profile/format";
 
 export const dynamic = "force-dynamic";
 
@@ -52,15 +53,22 @@ async function saveProfileAction(fd: FormData) {
 
 async function reimport() {
   "use server";
-  await saveProfile(parseResumeFile());
+  await saveProfile(parseResumeFile("two_page"), "two_page");
+  await saveProfile(parseResumeFile("one_page"), "one_page");
   redirect("/settings?ok=reimported");
+}
+
+async function saveFormat(fd: FormData) {
+  "use server";
+  await saveSetting("resumeFormat", asResumeFormat(fd.get("resumeFormat")));
+  redirect("/settings?ok=format");
 }
 
 export default async function Settings({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
   const cfg = await loadSettings();
   const profile = await loadProfile();
-  const okMsg = { ranking: "Ranking settings saved. The list re-ranks right away.", profile: "Profile saved.", skills: "Extra skills saved. They're used from the next tailoring on.", reimported: "Profile re-imported from resume.tex." }[sp.ok ?? ""];
+  const okMsg = { ranking: "Ranking settings saved. The list re-ranks right away.", profile: "Profile saved.", skills: "Extra skills saved. They're used from the next tailoring on.", reimported: "Profiles re-imported from resume.tex and resume-1page.tex.", format: "Resume format saved. It applies from the next tailoring on." }[sp.ok ?? ""];
 
   return (
     <div className="app">
@@ -90,12 +98,24 @@ export default async function Settings({ searchParams }: { searchParams: Promise
       <form className="panel" action={saveExtraSkills}>
         <h2>Extra skills</h2>
         <p className="hint">
-          Skills you&apos;ve really used that don&apos;t fit on your one-page resume. When a job asks for one, tailoring may add it
+          Skills you&apos;ve really used that aren&apos;t on your resume. When a job asks for one, tailoring may add it
           to your Skills section, at most 4 per resume. Only list what you could talk about in an interview: nothing else is ever added.
-          If an addition would push the resume past one page, it&apos;s the first thing removed.
+          If an addition would push the resume past its page limit, it&apos;s the first thing removed.
         </p>
         <textarea className="json" style={{ minHeight: 120 }} name="extraSkills" defaultValue={cfg.extraSkills.join("\n")} placeholder={"Docker\nFastAPI"} aria-label="Extra skills, one per line" />
         <div style={{ marginTop: 10 }}><button className="btn primary" type="submit">Save extra skills</button></div>
+      </form>
+
+      <form className="panel" action={saveFormat}>
+        <h2>Resume format</h2>
+        <p className="hint">Which master resume tailoring starts from. Neither is trimmed below its own length: the two-pager stays up to two pages, the one-pager uses your one-page version (resume-1page.tex).</p>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <select name="resumeFormat" defaultValue={cfg.resumeFormat} aria-label="Resume format">
+            <option value="two_page">Two pages (resume.tex)</option>
+            <option value="one_page">One page (resume-1page.tex)</option>
+          </select>
+          <button className="btn primary" type="submit">Save format</button>
+        </div>
       </form>
 
       <form className="panel" action={saveProfileAction}>
@@ -104,7 +124,7 @@ export default async function Settings({ searchParams }: { searchParams: Promise
         <textarea className="json" name="profile" defaultValue={JSON.stringify(profile, null, 2)} spellCheck={false} aria-label="Base profile JSON" />
         <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
           <button className="btn primary" type="submit">Save profile</button>
-          <button className="btn" formAction={reimport} type="submit">Re-import from resume.tex</button>
+          <button className="btn" formAction={reimport} type="submit">Re-import from resume files</button>
         </div>
       </form>
     </div>

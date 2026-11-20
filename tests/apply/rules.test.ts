@@ -35,8 +35,12 @@ describe("salary", () => {
     const f = field("Salary expectations", { kind: "select", options: ["$100k-$120k", "$120k-$140k", "$140k+"] });
     expect(val(answerByRule(f, ctx(usd)))).toBe("$140k+");
   });
-  test("no salary posted returns no_salary", () => {
-    expect(answerByRule(field("What is your expected salary?"), ctx({}))).toBe("no_salary");
+  test("no salary posted: optional field returns no_salary", () => {
+    expect(answerByRule(field("What is your expected salary?", { required: false }), ctx({}))).toBe("no_salary");
+  });
+  test("no salary posted: required field gets the flagged CAD estimate", () => {
+    expect(answerByRule(field("What is your expected salary?"), ctx({}))).toMatchObject({ value: "90,000–110,000 CAD per year", source: "estimate" });
+    expect(val(answerByRule(field("Desired salary", { kind: "number" }), ctx({})))).toBe("100000");
   });
 });
 
@@ -92,4 +96,13 @@ test("skill-specific years and current salary are not answered by rule", () => {
   expect(answerByRule(field("What is your current salary?"), ctx(usd))).toBeNull();
   expect(answerByRule(field("Current compensation"), ctx(usd))).toBeNull();
   expect(val(answerByRule(field("Years of professional experience", { kind: "number" }), ctx({})))).toBe(String(profile.facts.yearsExperience));
+});
+
+describe("citizenship", () => {
+  test("Canadian citizen", () => {
+    expect(val(answerByRule(field("Are you a Canadian citizen?", { kind: "select", options: ["Yes", "No"] }), ctx({})))).toBe("Yes");
+    expect(val(answerByRule(field("Are you a U.S. citizen?", { kind: "select", options: ["Yes", "No"] }), ctx({})))).toBe("No");
+    expect(val(answerByRule(field("Citizenship"), ctx({})))).toBe("Canadian");
+    expect(val(answerByRule(field("Nationality", { kind: "select", options: ["American", "Canadian", "Other"] }), ctx({})))).toBe("Canadian");
+  });
 });

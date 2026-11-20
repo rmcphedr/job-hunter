@@ -36,12 +36,31 @@ export function preamble(baseTex: string): string {
 const e = latexEscape;
 const itemize = (items: string[]) => (items.length ? `\\begin{itemize}\n${items.map((i) => `    \\item{} ${i}`).join("\n")}\n\\end{itemize}\n` : "");
 
+/** The base resume's own contact line (phone and city included), verbatim. */
+function baseContactLine(baseTex: string): string | null {
+  const body = baseTex.slice(baseTex.indexOf("\\begin{document}"));
+  const m = body.match(/\\begin\{center\}[\s\S]*?\\small\s*\n([\s\S]*?)\\end\{center\}/);
+  return m ? m[1].trim() : null;
+}
+
+/** The base resume's Summary section body, verbatim (it is never rewritten). */
+function baseSummary(baseTex: string): string | null {
+  const body = baseTex.slice(baseTex.indexOf("\\begin{document}"));
+  const m = body.match(/\\section\{Summary\}([\s\S]*?)(?=\\section\{|\\end\{document\})/);
+  return m ? m[1].trim() : null;
+}
+
 export function renderTex(r: TailoredResume, p: BaseProfile, baseTex: string): string {
   const [email, ...links] = p.links;
-  const header = [
+  const header = baseContactLine(baseTex) ?? [
     `\\href{mailto:${email}}{${e(email)}}`,
     ...links.map((l) => `\\href{${/^https?:/.test(l) ? l : `https://${l}`}}{${e(l.replace(/^https?:\/\//, ""))}}`),
   ].join(" | ");
+  const summary = baseSummary(baseTex);
+  // Section order follows the base: the one-pager lists Skills before Experience.
+  const docBody = baseTex.slice(baseTex.indexOf("\\begin{document}"));
+  const si = docBody.indexOf("\\section{Skills}"), xi = docBody.indexOf("\\section{Experience}");
+  const skillsFirst = si >= 0 && xi >= 0 && si < xi;
   const roles = r.roles.map((role, i) => {
     const b = p.roles[role.roleIdx];
     let s = `\\role{${e(b.title)}}{${e(b.org)}}{${e(b.dates)}}\n${itemize(role.bullets.map((x) => e(x.text)))}`;
@@ -56,6 +75,7 @@ export function renderTex(r: TailoredResume, p: BaseProfile, baseTex: string): s
     return `\\textbf{${e(name)}:} ${e(x.text)}`;
   });
   const skills = r.skills.map((c) => `\\textbf{${e(c.category)}:} ${c.items.map(e).join(", ")}`).join("\\par\\vspace{2pt}\n");
+  const skillsBlock = r.skills.length ? `\\section{Skills}\n${skills}\n` : "";
   const edu = p.education.map((x) => `\\role{${e(x.degree)}}{${e(x.school)}}{${e(x.dates)}}\n` +
     (x.coursework.length ? `\\textbf{Relevant Coursework:} ${x.coursework.map(e).join(", ")}\n` : "")).join("");
   const awards = p.awards.map((a) => `\\textbf{${e(a.name)}:} ${e(a.text)}`);
@@ -68,12 +88,11 @@ export function renderTex(r: TailoredResume, p: BaseProfile, baseTex: string): s
 \\small
 ${header}
 \\end{center}
-
-\\section{Experience}
+${summary ? `\n\\section{Summary}\n${summary}\n` : ""}
+${skillsFirst ? skillsBlock + "\n" : ""}\\section{Experience}
 ${roles}
 ${projects.length ? `\\section{Projects}\n${itemize(projects)}` : ""}
-\\section{Skills}
-${skills}
+${skillsFirst ? "" : skillsBlock}
 
 \\section{Education}
 ${edu}
@@ -115,14 +134,20 @@ export function trimOnce(r: TailoredResume, p: BaseProfile): TailoredResume | nu
   return null;
 }
 
-export async function fitOnePage(r: TailoredResume, p: BaseProfile, baseTex: string, outDir: string): Promise<{ resume: TailoredResume; pdfPath: string }> {
+/** Compiles within the base's page limit (2 for resume.tex, 1 for resume-1page.tex), trimming only when it overflows. */
+export async function fitPages(r: TailoredResume, p: BaseProfile, baseTex: string, outDir: string, maxPages = 1): Promise<{ resume: TailoredResume; pdfPath: string; pages: number }> {
   let cur = r;
   for (let i = 0; i <= 8; i++) {
     const { pdfPath, pages } = await compilePdf(renderTex(cur, p, baseTex), outDir);
-    if (pages <= 1) return { resume: cur, pdfPath };
+    if (pages <= maxPages) return { resume: cur, pdfPath, pages };
     const next = trimOnce(cur, p);
     if (!next) break;
     cur = next;
   }
-  throw new Error("does not fit one page");
+  throw new Error(`does not fit ${maxPages} page${maxPages === 1 ? "" : "s"}`);
+}
+
+/** Kept for callers that want the strict one-page fit. */
+export async function fitOnePage(r: TailoredResume, p: BaseProfile, baseTex: string, outDir: string) {
+  return fitPages(r, p, baseTex, outDir, 1);
 }
