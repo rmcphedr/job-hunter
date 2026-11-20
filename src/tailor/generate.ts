@@ -1,8 +1,29 @@
 import { chatJSON } from "../llm/openrouter";
+import { CodexCliError } from "../llm/codex";
+import { resumeLlmConfig } from "../llm/resumeConfig";
 import type { BaseProfile } from "../profile/types";
 import type { JobRow } from "../scoring/types";
 import type { GapItem, Prep, TailoredResume, Treatment } from "./types";
 import { baseResume } from "./truth";
+import { generateResumeViaCodex, type CodexTailorResult } from "./codexAgent";
+
+export type ResumeGenerationMeta = {
+  provider: "codex_cli" | "openrouter";
+  model: string;
+  changelog?: CodexTailorResult["changelog"];
+  requirements?: string[];
+  gaps?: GapItem[];
+  fitSummary?: string;
+  usd: number;
+};
+
+/** Last Codex-side metadata from generateResume (cleared for OpenRouter). */
+let lastResumeMeta: ResumeGenerationMeta | null = null;
+export function consumeResumeMeta(): ResumeGenerationMeta | null {
+  const m = lastResumeMeta;
+  lastResumeMeta = null;
+  return m;
+}
 
 const RULES = `Hard rules (never break these):
 - Use ONLY facts from the candidate's resume. Never add employers, titles, dates, numbers, team sizes, outcomes, tools, or skills that aren't in the source bullet.
@@ -53,9 +74,45 @@ function ensureRoles(r: TailoredResume, p: BaseProfile): TailoredResume {
   return { ...r, roles };
 }
 
-export async function generateResume(job: JobRow, profile: BaseProfile, t: Treatment): Promise<TailoredResume> {
+export async function generateResume(
+  job: JobRow,
+  profile: BaseProfile,
+  t: Treatment,
+  opts: { signal?: AbortSignal; forceProvider?: "codex_cli" | "openrouter" } = {},
+): Promise<TailoredResume> {
   const base = baseResume(profile);
-  if (!t.resumeModel) return base;
+  if (!t.resumeModel) {
+    lastResumeMeta = { provider: "openrouter", model: "base", usd: 0 };
+    return base;
+  }
+
+  const cfg = resumeLlmConfig();
+  const provider = opts.forceProvider ?? cfg.provider;
+
+  if (provider === "codex_cli") {
+    try {
+      const out = await generateResumeViaCodex(job, profile, t, {
+        signal: opts.signal,
+        extraSkills: profile.extraSkills,
+      });
+      lastResumeMeta = {
+        provider: "codex_cli",
+        model: out.model,
+        changelog: out.changelog,
+        requirements: out.requirements,
+        gaps: out.gaps,
+        fitSummary: out.fitSummary,
+        usd: 0,
+      };
+      return out.resume;
+    } catch (e) {
+      // Never silently fall back to a paid API. Opt-in only via RESUME_OPENROUTER_FALLBACK.
+      if (!cfg.openRouterFallback) throw e;
+      if (e instanceof CodexCliError && (e.code === "cancelled" || e.code === "api_key_auth")) throw e;
+      // Explicit fallback authorized: continue to OpenRouter below.
+    }
+  }
+
   const out = await chatJSON<Partial<TailoredResume>>({
     model: t.resumeModel, category: "tailoring", estimateUsd: t.rewrite === "full" ? 0.02 : 0.003,
     system: `You tailor a software engineer's one-page resume to a specific job.\n${MODE[t.rewrite]}\n\n${RULES}\n
@@ -75,6 +132,7 @@ Return JSON: {"headline": string, "roles": [{"roleIdx": number, "bullets": [{"so
     const name = profile.projects[Number(x.source.slice(1))]?.name;
     return name && x.text.startsWith(name) ? { ...x, text: x.text.slice(name.length).replace(/^\s*[:\u2013\u2014-]\s*/, "") } : x;
   });
+  lastResumeMeta = { provider: "openrouter", model: t.resumeModel, usd: t.rewrite === "full" ? 0.02 : 0.003 };
   // In keywords mode bullets stay exactly as written; only the headline and skill order come from the model.
   if (t.rewrite === "keywords") return { ...base, headline: r.headline, skills: r.skills.length ? r.skills : base.skills };
   return ensureRoles(r, profile);

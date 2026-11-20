@@ -3,6 +3,7 @@ import { db, closeDb } from "../db/client";
 import { runs } from "../db/schema";
 import { runSearchCycle, abandonStaleRuns } from "../pipeline/cycle";
 import { loadSettings } from "../config";
+import { processPendingTailors } from "../tailor/run";
 
 let busy = false;
 
@@ -11,6 +12,10 @@ async function cycle(runId?: number, skipSearch = false) {
   busy = true;
   const t0 = Date.now();
   try {
+    const pending = await processPendingTailors(3);
+    if (pending.ran) {
+      console.log(`[${new Date().toISOString()}] pending tailor runs: ${pending.ok} ok, ${pending.failed} failed`);
+    }
     const s = await runSearchCycle({ runId, skipSearch });
     console.log(`[${new Date().toISOString()}] cycle done in ${Math.round((Date.now() - t0) / 1000)}s: ` +
       `boards ${s.boards} (failed ${s.boardFailures}), +${s.inserted} new, ${s.updated} updated, ${s.closed} closed, ` +

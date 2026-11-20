@@ -34,7 +34,8 @@ npm run db:migrate      # migrates both the app and test databases
 
 Keys in `.env`:
 
-- `OPENROUTER_API_KEY`: resume tailoring (`OPENROUTER_TOP_MODEL`, `OPENROUTER_MID_MODEL`) and reading Hacker News posts (`OPENROUTER_CHEAP_MODEL`).
+- `OPENROUTER_API_KEY`: optional for resume rewrites when `RESUME_LLM_PROVIDER=openrouter`; still used for Hacker News extraction (`OPENROUTER_CHEAP_MODEL`) and other helpers.
+- `RESUME_LLM_PROVIDER`: `codex_cli` (default) or `openrouter`. Codex uses your ChatGPT subscription via the local CLI — see [docs/codex-resume.md](docs/codex-resume.md).
 - `TYPESAFE_API_KEY`: Jev scoring. Without it jobs are found but not scored.
 - `JEV_USD_PER_MTOK_INPUT`, `JEV_USD_PER_MTOK_OUTPUT`: Jev prices, used for the spend meter.
 
@@ -57,7 +58,7 @@ npm run worker   # searches now, then every 4 hours (Settings → "Search every"
 
 **Ranking.** Jev scores each job once; the composite score comes from your weights, so changing them doesn't cost another call. Jobs you can't take (wrong country, no sponsorship) are kept out of the Apply flow.
 
-**Tailoring.** Every takeable job at or above the cutoff (60) gets a full rewrite by the model in `.env` (Claude Haiku 5.5 by default). Then:
+**Tailoring.** Every takeable job at or above the cutoff (60) gets a full rewrite. By default that uses the local **Codex CLI** (`RESUME_LLM_PROVIDER=codex_cli`) with your ChatGPT login; set `openrouter` to use the OpenRouter model in `.env` instead. Then:
 
 - **Nothing invented.** Every bullet must map to one of your real bullets. New numbers, names or tools revert to your original wording, and a second model checks for overstated claims. The dashboard shows anything that was reverted.
 - **The job's spelling of your real skills** is allowed (Postgres for PostgreSQL), never a different product.

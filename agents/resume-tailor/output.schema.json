@@ -1,0 +1,89 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["headline", "roles", "projects", "skills", "includeQuote", "requirements", "gaps", "changelog", "fitSummary"],
+  "properties": {
+    "headline": { "type": "string" },
+    "roles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["roleIdx", "bullets"],
+        "properties": {
+          "roleIdx": { "type": "integer", "minimum": 0 },
+          "bullets": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["source", "text"],
+              "properties": {
+                "source": { "type": "string" },
+                "text": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "projects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source", "text"],
+        "properties": {
+          "source": { "type": "string" },
+          "text": { "type": "string" }
+        }
+      }
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["category", "items"],
+        "properties": {
+          "category": { "type": "string" },
+          "items": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "includeQuote": { "type": "boolean" },
+    "requirements": {
+      "type": "array",
+      "items": { "type": "string" },
+      "maxItems": 12
+    },
+    "gaps": {
+      "type": "array",
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["requirement", "importance", "suggestion"],
+        "properties": {
+          "requirement": { "type": "string" },
+          "importance": { "type": "string", "enum": ["core", "nice"] },
+          "suggestion": { "type": "string" }
+        }
+      }
+    },
+    "changelog": {
+      "type": "array",
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["change", "rationale"],
+        "properties": {
+          "change": { "type": "string" },
+          "rationale": { "type": "string" }
+        }
+      }
+    },
+    "fitSummary": { "type": "string" }
+  }
+}

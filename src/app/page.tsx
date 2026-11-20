@@ -5,8 +5,6 @@ import { db } from "@/db/client";
 import { jobs } from "@/db/schema";
 import { loadSettings } from "@/config";
 import { listJobs, listApplications, tabCounts, getJob, stageCounts, latestRun, sourceCount, getTailoring, gapCounts, gapKey, getApplication, todayCounts, type JobFilters } from "@/queries/jobs";
-import { rm } from "node:fs/promises";
-import path from "node:path";
 import { tailorings, applications, sites, answers } from "@/db/schema";
 import { approve, refill, pickJob } from "@/apply/queue";
 import { redirect } from "next/navigation";
@@ -17,6 +15,7 @@ import type { GapItem, Prep, TruthIssue } from "@/tailor/types";
 import { spendSummary } from "@/budget/budget";
 import { AppRow, DIMS, FEAS_LABEL, JobRow, appStatus, salaryText } from "./components/ui";
 import { ApplyButton } from "./components/ApplyButton";
+import { TailorButton, CancelTailorButton } from "./components/TailorButton";
 import { RunNow } from "./components/RunNow";
 import { generateExtras } from "@/tailor/generate";
 import { matchTerms } from "@/tailor/keywords";
@@ -25,6 +24,9 @@ import type { TailoredResume } from "@/tailor/types";
 import { pickTreatment } from "@/tailor/tiers";
 import { loadProfile } from "@/profile/load";
 import { BudgetExceededError } from "@/llm/openrouter";
+import { resumeLlmConfig } from "@/llm/resumeConfig";
+import { cancelTailor, tailorOneJob } from "@/tailor/run";
+import type { ChangelogEntry } from "@/tailor/codexAgent";
 
 export const dynamic = "force-dynamic";
 
@@ -80,8 +82,30 @@ async function retailor(formData: FormData) {
   "use server";
   const id = Number(formData.get("id"));
   if (!Number.isInteger(id) || id <= 0) return;
-  await db.delete(tailorings).where(eq(tailorings.jobId, id));
-  await rm(path.join(process.cwd(), "data", "out", String(id)), { recursive: true, force: true });
+  // Keep prior approved artifacts under versions/; regenerate a new version.
+  const r = await tailorOneJob(id, { regenerate: true });
+  revalidatePath("/");
+  if (!r.ok && r.code !== "already_running") {
+    redirect(`/?view=${String(formData.get("view") || "jobs")}&job=${id}&err=${encodeURIComponent(r.error)}`);
+  }
+}
+
+async function tailorAction(formData: FormData) {
+  "use server";
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id) || id <= 0) return;
+  const r = await tailorOneJob(id);
+  revalidatePath("/");
+  if (!r.ok) {
+    redirect(`/?view=${String(formData.get("view") || "jobs")}&job=${id}&err=${encodeURIComponent(r.error)}`);
+  }
+}
+
+async function cancelTailorAction(formData: FormData) {
+  "use server";
+  const id = Number(formData.get("id"));
+  if (!Number.isInteger(id) || id <= 0) return;
+  await cancelTailor(id);
   revalidatePath("/");
 }
 
@@ -191,6 +215,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<SP>
   const shown = (r: TailoredResume) => [r.headline, ...r.roles.flatMap((x) => x.bullets.map((b) => b.text)), ...r.projects.map((x) => x.text), ...r.skills.flatMap((c) => c.items)].join("\n");
   const match = job ? matchTerms(`${job.title}\n${job.descriptionText}`, shown((tailoring?.pdfPath && (tailoring.resume as TailoredResume | null)) || baseResume(await loadProfile()))) : null;
   const canApply = !!job && !app && job.status === "scored" && !job.closedAt && job.scores?.canTake !== "not_possible";
+  const resumeProvider = resumeLlmConfig().provider;
+  const tailorRunning = tailoring?.runStatus === "pending" || tailoring?.runStatus === "running";
+  const canTailor = !!job && job.status === "scored" && !job.closedAt && !tailorRunning;
 
   return (
     <div className="app">
@@ -327,11 +354,33 @@ export default async function Home({ searchParams }: { searchParams: Promise<SP>
               </div>
             ) : job.statusReason ? <div className="note">{job.statusReason}</div> : null}
             {sp.err && job.id === Number(sp.job) && <div className="note bad">{sp.err}</div>}
+            {(canTailor || tailorRunning) && (
+              <div className="actions apply-cta">
+                {canTailor && (
+                  <form action={tailorAction}>
+                    <input type="hidden" name="id" value={job.id} />
+                    <input type="hidden" name="view" value={view} />
+                    <TailorButton label={tailoring?.pdfPath ? "Regenerate resume" : "Tailor Resume"} />
+                  </form>
+                )}
+                {tailorRunning && (
+                  <form action={cancelTailorAction}>
+                    <input type="hidden" name="id" value={job.id} />
+                    <CancelTailorButton />
+                  </form>
+                )}
+                <span className="feas">
+                  Provider: {resumeProvider === "codex_cli" ? "Codex CLI (ChatGPT)" : "OpenRouter"}
+                  {tailorRunning ? " · Running…" : tailoring?.runStatus === "failed" ? " · Last run failed" : tailoring?.pdfPath ? ` · v${tailoring.version ?? 1} ready` : ""}
+                  {". Review before applying — nothing is submitted automatically."}
+                </span>
+              </div>
+            )}
             {canApply && (
               <form action={pickAction} className="actions apply-cta">
                 <input type="hidden" name="id" value={job.id} />
                 <ApplyButton tailored={!!tailoring?.pdfPath} />
-                <span className="feas">{tailoring?.pdfPath ? "Your tailored resume is ready." : "Tailors your resume first (about $0.10–0.30)."} Chrome fills it next; it goes ahead of the app&apos;s own picks.</span>
+                <span className="feas">{tailoring?.pdfPath ? "Your tailored resume is ready." : resumeProvider === "codex_cli" ? "Tailors your resume via Codex (ChatGPT subscription), then queues the application." : "Tailors your resume first (about $0.10–0.30)."} Chrome fills it next; it goes ahead of the app&apos;s own picks.</span>
               </form>
             )}
             {app?.status === "needs_you" && <div className="note"><b>Needs you:</b> {app.reason ?? "Finish this application in Chrome."}</div>}
@@ -366,8 +415,20 @@ export default async function Home({ searchParams }: { searchParams: Promise<SP>
             {tailoring && (
               <div className="actions" style={{ paddingTop: 8 }}>
                 {tailoring.pdfPath && <a className="btn" href={`/api/pdf/${job.id}?download=1`}>Download PDF</a>}
-                <form action={retailor}><input type="hidden" name="id" value={job.id} /><button className="btn" type="submit">Re-tailor</button></form>
-                <span className="feas" style={{ alignSelf: "center" }}>{tailoring.tier} tier, {tailoring.model.replace(/^.*\//, "")}, ${Number(tailoring.usd).toFixed(3)}</span>
+                {tailoring.docxPath && <a className="btn" href={`/api/docx/${job.id}?download=1`}>Download DOCX</a>}
+                {tailoring.pdfPath && !tailorRunning && (
+                  <form action={retailor}>
+                    <input type="hidden" name="id" value={job.id} />
+                    <input type="hidden" name="view" value={view} />
+                    <button className="btn" type="submit">Regenerate</button>
+                  </form>
+                )}
+                <span className="feas" style={{ alignSelf: "center" }}>
+                  {tailoring.provider ?? "openrouter"} · {tailoring.model.replace(/^.*\//, "")}
+                  {tailoring.pdfPath ? ` · v${tailoring.version ?? 1}` : ""}
+                  {Number(tailoring.usd) > 0 ? ` · $${Number(tailoring.usd).toFixed(3)}` : ""}
+                  {tailoring.runStatus && tailoring.runStatus !== "completed" ? ` · ${tailoring.runStatus}` : ""}
+                </span>
               </div>
             )}
             <div className="tabs" role="tablist">
@@ -377,8 +438,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<SP>
             </div>
             <div className="pane">
               {tab === "resume" && tailoring && (
-                tailoring.error && !tailoring.pdfPath ? (
-                  <div className="note">Tailoring failed: {tailoring.error}. Press Re-tailor to try again on the next search.</div>
+                tailorRunning ? (
+                  <div className="note">Tailoring in progress via {tailoring.provider ?? resumeProvider}… This can take a few minutes with Codex. You can cancel above.</div>
+                ) : tailoring.error && !tailoring.pdfPath ? (
+                  <div className="note">Tailoring failed: {tailoring.error}. Press Tailor Resume / Regenerate to try again. No paid API fallback was used.</div>
                 ) : (
                   <>
                     <div className="pane-tools">
@@ -395,6 +458,17 @@ export default async function Home({ searchParams }: { searchParams: Promise<SP>
                             {d.kind === "dropped" && <div className="was">{d.base}</div>}
                           </div>
                         ))}
+                        {(tailoring.changelog as ChangelogEntry[] | null)?.length ? (
+                          <div className="issues">
+                            <h3>Tailoring decisions</h3>
+                            {(tailoring.changelog as ChangelogEntry[]).map((x, i) => (
+                              <div key={i} className="q"><b>{x.change}</b>{x.rationale ? ` — ${x.rationale}` : ""}</div>
+                            ))}
+                          </div>
+                        ) : null}
+                        {((tailoring.meta as { fitSummary?: string } | null)?.fitSummary) ? (
+                          <div className="issues"><h3>Fit</h3><div className="q">{(tailoring.meta as { fitSummary: string }).fitSummary}</div></div>
+                        ) : null}
                         {(tailoring.issues as TruthIssue[] | null)?.length ? (
                           <div className="issues">
                             <h3>Reverted to your original wording</h3>

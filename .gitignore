@@ -4,5 +4,6 @@ node_modules/
 .next/
 *.log
 data/out/
+data/codex-workspaces/
 .DS_Store
 *.tsbuildinfo

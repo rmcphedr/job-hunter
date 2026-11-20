@@ -19,12 +19,18 @@ async function main() {
   const [job] = await db.select().from(jobs).where(eq(jobs.id, id));
   if (!job) { console.log("no such job"); return closeDb(); }
   const p = await loadProfile();
+  const { resumeLlmConfig } = await import("../src/llm/resumeConfig");
+  const llm = resumeLlmConfig();
   const t = pickTreatment((opt("tier") as "top" | "middle" | "bottom") ?? "top", 0);
   if (opt("model")) t.resumeModel = opt("model")!;
+  if (llm.provider === "codex_cli" && !opt("model")) t.resumeModel = "codex_cli";
   const t0 = new Date();
-  console.log(`== #${id} ${job.title} @ ${job.companyName} | tier ${t.tier} | ${t.resumeModel} | ${t.rewrite}`);
+  console.log(`== #${id} ${job.title} @ ${job.companyName} | provider ${llm.provider} | tier ${t.tier} | ${t.resumeModel} | ${t.rewrite}`);
+  if (llm.provider === "codex_cli") {
+    console.log("Note: this will use your ChatGPT/Codex subscription allowance.");
+  }
 
-  let r = await generateResume(job, p, t);
+  let r = await generateResume(job, p, t, { forceProvider: llm.provider });
   if (flag("inject-fake")) r.roles[0].bullets.push({ source: "r0b0", text: "Led a team of 40 engineers at Google" });
   const { resume, issues } = await truthCheck(r, p, t.extrasModel, undefined, job.descriptionText);
   r = resume;

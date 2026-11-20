@@ -102,23 +102,38 @@ export const runs = pgTable("runs", {
 });
 
 export const tierEnum = pgEnum("tailor_tier", ["top", "middle", "bottom"]);
+export const tailorRunStatusEnum = pgEnum("tailor_run_status", [
+  "pending", "running", "completed", "failed", "cancelled",
+]);
 
 export const tailorings = pgTable("tailorings", {
   jobId: integer("job_id").primaryKey().references(() => jobs.id, { onDelete: "cascade" }),
   tier: tierEnum("tier").notNull(),
   model: text("model").notNull(),
+  /** openrouter | codex_cli */
+  provider: text("provider").notNull().default("openrouter"),
+  runStatus: tailorRunStatusEnum("run_status").notNull().default("completed"),
   resume: jsonb("resume"),
   issues: jsonb("issues"),
   diff: jsonb("diff"),
   coverLetter: text("cover_letter"),
   gapReport: jsonb("gap_report"),
   prep: jsonb("prep"),
+  /** Tailoring change log from the resume agent. */
+  changelog: jsonb("changelog"),
   pdfPath: text("pdf_path"),
+  docxPath: text("docx_path"),
+  /** Monotonic generation number; regenerations archive prior artifacts. */
+  version: integer("version").notNull().default(1),
+  /** Extra metadata: requirements, fitSummary, logs, durationMs. */
+  meta: jsonb("meta"),
   error: text("error"),
   attempts: integer("attempts").notNull().default(1),
   usd: numeric("usd", { mode: "number" }).notNull().default(0),
   createdAt: ts("created_at").notNull().defaultNow(),
-}, (t) => [index("tailorings_created").on(t.createdAt)]);
+  startedAt: ts("started_at"),
+  finishedAt: ts("finished_at"),
+}, (t) => [index("tailorings_created").on(t.createdAt), index("tailorings_run_status").on(t.runStatus)]);
 
 export const appStatusEnum = pgEnum("app_status", [
   "queued", "filling", "ready_to_submit", "needs_you", "submitting", "applied", "skipped", "failed", "manual", "interviewing", "rejected", "offer",
