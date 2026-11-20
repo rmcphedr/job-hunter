@@ -8,7 +8,7 @@ describe("composite seniority", () => {
   it("a job asking for far more experience than he has falls below the cutoff, however good the rest", () => {
     expect(composite(dims(90, 20), config.weights).score).toBeLessThan(config.cutoff);
   });
-  it("a stretch role (3–5 years) keeps its score", () => {
+  it("a plausible seniority match keeps its score", () => {
     expect(composite(dims(90, 50), config.weights).score).toBeGreaterThanOrEqual(85);
   });
 });
