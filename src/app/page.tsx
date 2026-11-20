@@ -157,10 +157,16 @@ export default async function Home({ searchParams }: { searchParams: Promise<SP>
   const sp = await searchParams;
   const cfg = await loadSettings();
   const view: View = (["apply", "applied", "jobs", "pipeline"] as const).find((v) => v === sp.view) ?? "apply";
+  // Jobs to look at is scored+takeable once Jev has run; before that, show unscored finds so the list isn't empty.
+  const stages = view === "pipeline" ? await stageCounts() : null;
+  const jobsStage: JobFilters["stage"] =
+    view === "jobs"
+      ? ((stages ?? await stageCounts()).scored > 0 ? "scored" : "found")
+      : (sp.stage as JobFilters["stage"]) ?? "scored";
   const filters: JobFilters = {
-    stage: view === "jobs" ? "scored" : (sp.stage as JobFilters["stage"]) ?? "scored",
-    fresh: view === "jobs",
-    canTake: view === "jobs" ? sp.canTake !== "0" : sp.canTake === "1",
+    stage: jobsStage,
+    fresh: view === "jobs" && jobsStage === "scored",
+    canTake: view === "jobs" ? sp.canTake !== "0" && jobsStage === "scored" : sp.canTake === "1",
     salaryPosted: sp.salaryPosted === "1", ai: sp.ai === "1",
     founding: sp.founding === "1", remote: sp.remote === "1",
     minScore: sp.minScore ? Number(sp.minScore) : undefined,
@@ -168,7 +174,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<SP>
   const [list, apps, tabs, counts, run, spend, nSources, today, siteRows, newAnswers] = await Promise.all([
     view === "jobs" || view === "pipeline" ? listJobs(filters, cfg.weights) : Promise.resolve([]),
     view === "apply" || view === "applied" ? listApplications(view === "apply" ? "todo" : "sent", cfg.weights) : Promise.resolve([]),
-    tabCounts(), view === "pipeline" ? stageCounts() : Promise.resolve(null), latestRun(), spendSummary(), sourceCount(), todayCounts(),
+    tabCounts(), view === "pipeline" ? Promise.resolve(stages) : Promise.resolve(null), latestRun(), spendSummary(), sourceCount(), todayCounts(),
     db.select().from(sites), db.select({ id: answers.id }).from(answers).where(eq(answers.isNew, true)),
   ]);
   const pausedSites = siteRows.filter((x) => x.paused);
@@ -266,8 +272,11 @@ export default async function Home({ searchParams }: { searchParams: Promise<SP>
                 {view === "pipeline" && (
                   <Link className="chip" aria-pressed={sp.canTake === "1"} scroll={false} href={href(sp, { canTake: sp.canTake === "1" ? undefined : "1", job: undefined })}>Can take it</Link>
                 )}
-                <span className="sort">{list.length === 300 ? "Top 300" : list.length} {list.length === 1 ? "job" : "jobs"}, best first</span>
+                <span className="sort">{list.length === 300 ? "Top 300" : list.length} {list.length === 1 ? "job" : "jobs"}{jobsStage === "found" ? ", not scored yet" : ", best first"}</span>
               </div>
+              {view === "jobs" && jobsStage === "found" && (
+                <div className="note">Fetched {list.length} jobs, but scoring hasn&apos;t run yet — they&apos;ll rank here once TYPESAFE_API_KEY is available to the worker.</div>
+              )}
               <div className="legend">
                 {DIMS.map((d) => <span key={d.key}><i style={{ background: d.color }} />{d.label}</span>)}
               </div>

@@ -166,16 +166,19 @@ export async function listApplications(group: "todo" | "sent", w: Weights): Prom
   return ranked.map((r) => ({ ...r, sources: srcs.get(r.id) ?? [] }));
 }
 
-/** Counts for the three tabs. "fresh" matches the default Jobs to look at list (takeable, open, scored, no application). */
+/** Counts for the three tabs. "fresh" matches the default Jobs to look at list (takeable, open, scored, no application). Falls back to unscored finds when nothing is scored yet. */
 export async function tabCounts(): Promise<{ todo: number; sent: number; fresh: number }> {
   const apps = await db.select({ status: applications.status, closed: jobs.closedAt, picked: applications.picked, level: jobScores.level })
     .from(applications).innerJoin(jobs, eq(jobs.id, applications.jobId)).leftJoin(jobScores, eq(jobScores.jobId, jobs.id));
   const [f] = await db.select({ n: sql<number>`count(*)::int` }).from(jobs).leftJoin(jobScores, eq(jobScores.jobId, jobs.id))
     .where(where({ stage: "scored", fresh: true, canTake: true }));
+  const scoredFresh = f?.n ?? 0;
+  const [found] = scoredFresh > 0 ? [{ n: 0 }] : await db.select({ n: sql<number>`count(*)::int` }).from(jobs)
+    .where(where({ stage: "found" }));
   return {
     todo: apps.filter((a) => !a.closed && (TODO_STATUSES as readonly string[]).includes(a.status)
       && (a.picked || (a.level ?? 0) >= TOO_SENIOR_LEVEL)).length,
     sent: apps.filter((a) => (SENT_STATUSES as readonly string[]).includes(a.status)).length,
-    fresh: f?.n ?? 0,
+    fresh: scoredFresh > 0 ? scoredFresh : (found?.n ?? 0),
   };
 }
